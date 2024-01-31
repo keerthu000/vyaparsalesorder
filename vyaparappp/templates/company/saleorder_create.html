@@ -285,7 +285,7 @@
                                 <div class="row " style="margin-top: 5rem;">
                                     <div class="col-md-12 table-responsive-md ">
                                         <table class="table table-bordered table-light  tb table-responsive"
-                                        id="tab_logic" style="border: solid black 1px;">
+                                        id="tab_logic" style="border: solid LightGray 1px;width: 115%;">
                                         <thead>
                                             <tr>
                                                 <th class="text-center">#</th>
@@ -337,7 +337,7 @@
                                                         style="background-color: white;color: black;padding:8px 3px;"
                                                         placeholder='Enter Qty' id="qty1"
                                                         class="form-control border-secondary qty" step=0
-                                                        min=0 />
+                                                        min=0  required/>
                                                     <!-- <div style="margin-top: 5Px;" class="d-flex">
                                                         <span>Available Qty :</span> <span id="qtyspan1"
                                                             class=''></span></div> -->
@@ -380,12 +380,12 @@
                                                         class="form-control taxamount border-secondary" />
                                                         
                                                 </td>
-                                                </td>
+                                               
                                                 <td class="d-flex">
                                                     <button type="button" id="1"
                                                         class="btn btn-primary font-weight-bold clone_row px-2 my-1 py-1"
                                                         title="Clone Row"><i
-                                                            class="fas fa-clone"></i></button><br>
+                                                            class="fas fa-clone"></i></button><br><br>
                                                     <button type="button" id="1"
                                                         class="btn btn-danger font-weight-bold remove_row px-2 my-1 py-1 mx-1"
                                                         title="Remove Row"><i class="fas fa-times"></i>
@@ -423,7 +423,9 @@
                                                 <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
                                                 <div class="col-sm-1 mt-2">:</div>
                                                 <div class="col-sm-7">
-                                                    <input type="number" name='igst' step="any" id="igst" value=0.00 readonly style="color: black; background-color: white;" class="form-control border-secondary"/>
+                                                    <input type="number" name='igst'
+                                                                    step="any" id="igst" value=0.00
+                                                                    class="form-control border-secondary" />
                                                 </div>
                                                 <div class="col-sm-4 m-0 p-0"></div>
                                             </div>
@@ -432,7 +434,9 @@
                                                 <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
                                                 <div class="col-sm-1 mt-2">:</div>
                                                 <div class="col-sm-7">
-                                                    <input type="number" name='cgst' step="any" id="cgst" value=0.00 readonly style="color: black; background-color: white;" class="form-control border-secondary"/>
+                                                    <input type="number" name='cgst'
+                                                    step="any" id="cgst" value=0.00
+                                                    class="form-control border-secondary" />
                                                 </div>
                                                 <div class="col-sm-4 m-0 p-0"></div>
                                             </div>
@@ -495,7 +499,7 @@
                                             <div class="col-sm-4 mt-2"><label for="a" class="text-center">Balance</label></div>
                                             <div class="col-sm-1 mt-2">:</div>
                                             <div class="col-sm-7">
-                                                <input type="number" name='balance' id="balance" value=0.00 readonly style="color: black; background-color: white;"  class="form-control border-secondary" readonly />
+                                                <input type="number" name='baldue' id="baldue" value=0.00 readonly style="color: black; background-color: white;"  class="form-control border-secondary" readonly />
                                             </div>
                                             <div class="col-sm-4 m-0 p-0"></div>
                                         </div>
@@ -506,11 +510,13 @@
 
 
 
-                                <div class="col-md-5 mt-4">
-                                    <input type="submit" class="btn btn-primary save-button" name="save_and_new" value="Save&New">
-                                    <input type="submit" class="btn btn-primary save-button" name="save" value="Save">
+                            <div class="row">
+                                <div class="col-md-1 mt-4"></div>
+                                <div class="col-md-5 mt-3 d-flex" style="margin-left:5vh">
+                                    <input type="submit" class="btn btn-primary bg-gradient me-3" name="save_and_next" value="SAVE & NEXT"></input> 
+                                    <input type="submit" class="btn btn-primary bg-gradient" name="save" value="SAVE"></input>
                                 </div>
-
+                            </div>
                             </div>
                         </div>
                     </form>
@@ -2152,7 +2158,7 @@
                         </td>
                         <td class="d-flex">
                             <button type="button" id="${roinc}" class="btn btn-primary font-weight-bold clone_row px-2 my-1 py-1"
-                                                                        title="Clone Row"><i class="fas fa-clone"></i></button><br>
+                                                                        title="Clone Row"><i class="fas fa-clone"></i></button><br><br>
                             <button type="button" id="${roinc}" class="btn btn-danger remove_row px-2 my-1 py-1 mx-1"
                                                                         title="Remove Row"><i class="fas fa-times    "></i> </button>
                             
@@ -2264,7 +2270,7 @@
                         document.getElementById('intrataxval'+n).value = datagst;
                         document.getElementById('intertaxval'+n).value = dataigst;
                     }
-                    else if (document.getElementById('stateofsply').value == 'Other state') {
+                    else if (document.getElementById('stateofsply').value == 'Other State') {
                         document.getElementById('select_tax' + n).value = dataigst;
                         document.getElementById('hsn' + n).value = data;
                         document.getElementById('unit' + n).value = dataprice;
@@ -2322,7 +2328,6 @@
                     var row = $(this).closest('tr');
                     performCalculations(row);
                 });
-        //     
 
                 $('#paymethode').change(function () {
 
@@ -2370,18 +2375,18 @@
                 var numberOfRows = table.rows.length;
                 var selectedOption = $(this).val();
                 if (selectedOption === 'Other State') {
-                    $('#igst1').show();
-                    $('#cgst1').hide();
-                    $('#sgst1').hide();
+                    $('#igstdiv').show();
+                    $('#cgstdiv').hide();
+                    $('#sgstdiv').hide();
                     for (var l = 1; l <= numberOfRows; l++){
                         val = document.getElementById('intertaxval'+l).value;
                         document.getElementById('select_tax'+l).value = val
                     }
                 }
                 else if (selectedOption === 'State') {
-                    $('#igst1').hide();
-                    $('#cgst1').show();
-                    $('#sgst1').show();
+                    $('#igstdiv').hide();
+                    $('#cgstdiv').show();
+                    $('#sgstdiv').show();
                     for (var l = 1; l <= numberOfRows; l++){
                         val = document.getElementById('intrataxval'+l).value;
                         document.getElementById('select_tax'+l).value = val
@@ -2424,7 +2429,7 @@
             $('#sub_total').val(total.toFixed(2));
             $('#tax_amount').val(taxamount.toFixed(2));
 
-            if (sos === 'Other State') {
+            if (sos === 'Other state') {
                 $('#igst').val(taxamount.toFixed(2));
             }
             else if (sos === 'State') {
