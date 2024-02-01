@@ -92,9 +92,13 @@
                         More <i class="fa fa-plus"></i></a>
                 </div>
                 <p></p>
+            </div>
+        </div>
+    </div>
+</div>
 
 
-
+{% comment %} 
                 <form action="{% url 'edit_saleorder' sale.id %}" method="post" enctype="multipart/form-data"
                     id="myForm">
                     {% csrf_token %}
@@ -719,9 +723,448 @@
 
                         </div>
                     </div>
-                </form>
+                </form> {% endcomment %}
+
+
+                <div style="background-color: rgba(176, 199, 205, 0.4);margin-left:5px;">
+                    
+                    <form method="POST" action="{% url 'create_saleorder' %}" class="p-5"  enctype="multipart/form-data" novalidate
+                        id="forms">
+                        {% csrf_token %}
+                        <div class="body-wrapper">
+                            <div class="d-flex justify-content-end">
+                                <div class="ml-auto">
+                                    <a href="{% url 'sale_order' %}" style="font-size: x-large; color: black;" title="Close">
+                                        <i class="fa fa-times-circle fs-6 tb close_pad mt-4" aria-hidden="true " ></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="container-fluid" style="margin-left: -4vw; margin-top: -4vw;">
+                                <div class="col-md-3">
+                                    <a class="text-dark" style="font-size: 1.5rem;">Edit Sales Order</a>
+                                </div>
+                                
+                                <!-- <input class="hidden"  id="state1" name="hidden_state1" value="">
+                                <input class="hidden"  id="state" name="hidden_state" value="">
+
+                                <input class="hidden" type="text" name="samp" id="samp" >
+                                <input class="hidden"  id="cus_place" name="hidden_cus_place"  value=""> -->
+                                <div class="row">
+                                <div class="col-md-4">
+                                <label class="col-form-label">Party</label>
+                                <div class="d-flex ">
+                                    <select name="party" id="party"
+                                    class="form-control border-secondary">
+                                    <option value="{{sale.party.id}}" selected>{{sale.party.party_name}}</option>
+                                    {% for c in party %}
+
+                                    <option value={{c.id}}> {{ c.party_name }}</option>
+
+                                    {% endfor %}
+                                </select>
+                                    
+                                    
+                                <button id="modal_closing  d-flex" type="button"
+                                class="btn bg-secondary text-light ms-1"
+                                data-bs-toggle="modal" data-bs-target="#exampleModal"
+                                data-bs-whatever="@mdo"><span
+                                    class="fa fa-plus"></span></button>
+
+                                </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div id="partyPhonebox">
+                                    <label class="col-form-label">Phone No</label>
+                                    <input style="color: black;background-color: white; "
+                                                        class="form-control  border-secondary ms-2 me-2" type="text"
+                                                        placeholder="PHONE" name="phone" id="p_phone" >
+                                    </div>
+                                </div>
+                                    <div class="col-md-4">
+                                        <div id="adrsblock">
+                                            <label class="col-form-label">Address</label>
+                                            <input style="color: black;background-color: white; "
+                                            class="form-control  border-secondary ms-2  me-2" type="text"
+                                            placeholder="ADDRESS" name="address" id="adrs">
+                                        </div>
+                                    </div>
+                                    <script>
+                                        function getprty() {
+                                            var party = $('#party').val();
+                                            console.log(party)
+                                            $.ajax({
+                                                type: "GET",
+                                                url: "{% url 'getparty' %}",
+                                                data: {
+                                                    id: party
+                                                },
+                                                success: function (response) {
+                                                    // console.log(response.email)
+
+                                                    $('#p_phone').val(response.phone);
+                                                    $('#p_bal').text(response.balance);
+                                                    $('#adrs').val(response.address);
+                                                    $('#adrs').val(response.address);
+                                                    if (response.address != '') {
+                                                        $('#adrsblock').show();
+                                                    }
+                                                    else { $('#adrsblock').hide(); }
+                                                    if (response.payment == 'To Pay') {
+                                                        $('#p_bal').css('color', 'red');
+                                                    }
+                                                    else {
+                                                        $('#p_bal').css('color', 'green');
+                                                    }
+                                                }
+                                            });
+                                        }
+                                        $(document).ready(function () {
+                                            getprty();
+                                            // Initialize selectize
+                                            var $select = $('#party').selectize({
+                                                sortField: 'value',
+                                                render: {
+                                                    item: function (item, escape) {
+                                                        if (item.value === '') {
+                                                            return '';
+                                                        }
+                                                        return '<div>' + escape(item.text) + '</div>';
+                                                    }
+                                                }
+                                            });
+
+
+                                            $(document).on('change', '#party', function () {
+                                                getprty();
+                                            });
+                                        });
+                                    </script>
+                                    <div class="row">
+                                        <div class="d-flex pt-2">
+                                            <label class="pt-1 fs-3" for="">Balance:</label>
+                                            <div class="fs-5" id="p_bal"></div>
+                                        </div>
+                                    </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="col-form-label">Order No</label>
+                                        <input style="color: black;background-color: white; " id="orderno"
+                                        class="form-control fw-normal border-secondary  fs-3"
+                                        type="number" placeholder="Order Number" name="orderno"
+                                        value="{{order}}">
+
+                                        <br>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="col-form-label">Date</label>
+                                    <input style="color: black;  width: 21.5vw;" class="form-control  bg-light border-secondary" type="date"
+                                        placeholder="Date" autocomplete="off"  name="orderdate" id="orderdate">
+                                    </div>
+                                    <script>document.getElementById("orderdate").value = new Date().toISOString().split('T')[0];</script>
+                                    <div class="col-md-4">
+                                        <label class="col-form-label">Due Date</label>
+                                    <input style="color: black;  width: 21.5vw;" class="form-control  bg-light border-secondary" type="date"
+                                        placeholder="Date" autocomplete="off"  name="duedate"  id="duedate">
+                                    </div>
+                                </div>
+                                    <script>document.getElementById("duedate").value = new Date().toISOString().split('T')[0];</script>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="col-form-label">State of Supply</label>
+                                       <select style="color: black;  width: 21.5vw;" class="form-control  bg-light me-2  border-secondary" id="stateofsply"
+                                       name="stateofsply">
+                                            <option value="">State of supply</option>
+                                            <option value="State">State</option>
+                                            <option value="Other State">Other State</option>
+
+                                        </select>
+                                    </div>
+                              
+
+                                   {% comment %} <div class="row "> {% endcomment %}
+                                    <div class="col-md-4">
+                                    <label class="col-form-label" >Payment Type</label>
+                                    <select style="color: black; width: 275px;" class="form-control bg-light  me-2 border-secondary" id="paymethode" name="paymethode" onchange="updateBankDetails()" >
+                                        <option value="">Select Payment Type</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="UPI">UPI</option>
+                                        {% for i in bank %}
+                                            <option value="{{ i.bank_name|upper }}">{{ i.bank_name|upper }}</option>
+                                        {% endfor %}
+                                        
+                                    </select>
+                                    </div>
+                                   <div class="col-md-4">
+                                        <div style="display: none;" id="check">
+                                            <label class="col-form-label" >Cheque ID</label>
+                                            <input type="text" id="checkno"  name="checkno" class="form-control bg-light me-2 border-secondary" placeholder=" Cheque Number">
+                                        </div>
+                    
+                                        <div id="upi" style="display: none; width: 21.5vw;">
+                                            <label class="col-form-label" >UPI ID</label>
+                                            <input type="text" id="upiid"  name="upiid" class="form-control  bg-light me-2 border-secondary" placeholder=" UPI Number">
+                                        </div>
+    
+    
+                                        <div id="account" style="display: none; width: 21.5vw;">
+                                            <label class="col-form-label" >Bank Account</label>
+                                            <input type="text"  id="accno"  name="accno" class="form-control  bg-light me-2 border-secondary" placeholder=" Account Number " readonly>
+                                        </div>
+                                    </div>
+                               
+                                </div>
+                                
+                              
+                            
+
+                                <!-- .............................................  TABLE 1  ..................................................... -->
+
+
+                                <div class="row " style="margin-top: 5rem;">
+                                    <div class="col-md-12 table-responsive-md ">
+                                        <table class="table table-bordered table-light  tb table-responsive"
+                                        id="tab_logic" style="border: solid LightGray 1px;width: 115%;">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">#</th>
+                                                <th class="text-center">PRODUCT / SERVICE</th>
+                                                <th class="text-center">HSN</th>
+                                                <!-- <th class="text-center">DESCRIPTION</th> -->
+                                                <th class="text-center">QTY</th>
+                                                <th class="text-center">PRICE</th>
+                                                <th class="text-center">TAX (%)</th>
+                                                <th class="text-center">DISCOUNT</th>
+                                                <th class="text-center">TOTAL</th>
+                                                <th></th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody id="items-table-body">
+                                            <tr id='addr01'>
+                                                <td class="nnum">1</td>
+                                                <td style="width: 20%;">
+
+                                                    <div class="d-flex">
+                                                        <select name='product[]' id="product1"
+                                                            style="margin-right: 0.5em;"
+                                                            class="form-control product border-secondary">
+                                                            <option value="" selected hidden>Select Product</option>
+
+                                                            {% for i in item %}
+                                                            <option value="{{i.id}}">{{i.item_name}}
+                                                            </option>
+                                                            {% endfor %}
+                                                        </select>
+
+                                                        <a href="#">
+                                                            <button type="button"
+                                                                class="btn btn-outline-secondary ms-1"
+                                                                data-bs-toggle="modal"
+                                                                r>+</button>
+                                                        </a>
+                                                    </div>
+
+                                                </td>
+                                                <td><input type="text" name='hsn[]' id="hsn1"
+                                                        style="background-color: white;color: black;padding:8px 3px;"
+                                                        placeholder='HSN Code'
+                                                        class="form-control border-secondary" readonly>
+                                                </td>
+                                                <!-- <td><input type="text" name='description[]' id="description" placeholder='Description' class="form-control"  /></td> -->
+                                                <td><input type="number" name='qty[]'
+                                                        style="background-color: white;color: black;padding:8px 3px;"
+                                                        placeholder='Enter Qty' id="qty1"
+                                                        class="form-control border-secondary qty" step=0
+                                                        min=0  required/>
+                                                    <!-- <div style="margin-top: 5Px;" class="d-flex">
+                                                        <span>Available Qty :</span> <span id="qtyspan1"
+                                                            class=''></span></div> -->
+                                                </td>
+                                                <td><input type="number" name='price[]' id="unit1"
+                                                        style="background-color: white;color: black;padding:8px 3px;"
+                                                        placeholder='Enter Unit Price'
+                                                        class="form-control price border-secondary"
+                                                        step="0.00" min="0" />
+                                                </td>
+
+
+
+                                                <td>
+                                                    <input hidden id="cmpstate">
+                                                    <input type="text" id="intrataxval1" hidden>
+                                                    <input type="text" id="intertaxval1" hidden>
+                                                    <input type="text" id="select_tax1" name="tax1[]"
+                                                        style="background-color: white;color: black;padding:8px 3px;"
+                                                        placeholder="Tax Rate"
+                                                        class="form-control seltax d-flex border-secondary"
+                                                        style="width: 8vw;">
+
+
+                                                </td>
+                                                <td><input type="number" name='discount[]'
+                                                        style="background-color: white;color: black;padding:8px 3px;"
+                                                        placeholder='Enter Discount' id="disc1" value=0
+                                                        class="form-control disc border-secondary"
+                                                        step=0 min=0 />
+
+                                                <td><input type="number" name='total[]' id="total1"
+                                                        style="background-color: white;color: black;padding:8px 3px;"
+                                                        placeholder=0
+                                                        class="form-control total border-secondary"
+                                                        value=0 step="any" readonly />
+                                                </td>
+                                                <td style="display: none;"><input type="number"
+                                                        step="any" name='taxamount[]' id="taxamount1"
+                                                        class="form-control taxamount border-secondary" />
+                                                        
+                                                </td>
+                                               
+                                                <td class="d-flex">
+                                                    <button type="button" id="1"
+                                                        class="btn btn-primary font-weight-bold clone_row px-2 my-1 py-1"
+                                                        title="Clone Row"><i
+                                                            class="fas fa-clone"></i></button><br><br>
+                                                    <button type="button" id="1"
+                                                        class="btn btn-danger font-weight-bold remove_row px-2 my-1 py-1 mx-1"
+                                                        title="Remove Row"><i class="fas fa-times"></i>
+                                                    </button>
+                                                </td>
+                                        </tbody>
+
+                                    </table>
+                                        <tr>
+                                            <td style="border: none;"><a class="btn btn-outline-info ml-1" role="button" id="add" ><span class="fa fa-plus"></span></a></td>
+                                        </tr>
+                                    </div>
+                                </div>
+
+                                <div class="clearfix" style="margin-top:10px">
+                                <div class="row ">
+                                    <div class="col-sm-5 d-flex flex-column mt-2">
+
+                                        <label for="">Description</label>
+                                        <textarea class="form-control bg-light" name="description" id="" cols="8" rows="8" placeholder=" "></textarea>
+                                    </div>
+                                    <div class="col-sm-6 " id="tab_logic_total" style=" color: black; border: 1px solid rgba(128, 128, 128, 0.6); margin-left: 2vh; background-color: white; ">
+                                        
+                                        <div class="p-3">
+                                            <div class="row container-fluid p-2 m-0">
+                                                <div class="col-sm-4 mt-2"><label class="text-center">Sub Total</label></div>
+                                                <div class="col-sm-1 mt-2">:</div>
+                                                <div class="col-sm-7">
+                                                    <input type="number" step="any" name='subtotal' value=0.00 readonly style="color: black; background-color: white;" class="form-control border-secondary" id="sub_total">
+                                                </div>
+                                                <div class="col-sm-4 m-0 p-0"></div>
+                                            </div>
+
+                                            <div class="row container-fluid p-2 m-0" id="igstdiv">
+                                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">IGST</label></div>
+                                                <div class="col-sm-1 mt-2">:</div>
+                                                <div class="col-sm-7">
+                                                    <input type="number" name='igst'
+                                                                    step="any" id="igst" value=0.00
+                                                                    class="form-control border-secondary" />
+                                                </div>
+                                                <div class="col-sm-4 m-0 p-0"></div>
+                                            </div>
+                                        
+                                            <div class="row container-fluid p-2 m-0" style="display: none;" id="cgstdiv">
+                                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">CGST</label></div>
+                                                <div class="col-sm-1 mt-2">:</div>
+                                                <div class="col-sm-7">
+                                                    <input type="number" name='cgst'
+                                                    step="any" id="cgst" value=0.00
+                                                    class="form-control border-secondary" />
+                                                </div>
+                                                <div class="col-sm-4 m-0 p-0"></div>
+                                            </div>
+
+                                            <div class="row container-fluid p-2 m-0" style="display: none;" id="sgstdiv">
+                                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">SGST</label></div>
+                                                <div class="col-sm-1 mt-2">:</div>
+                                                <div class="col-sm-7">
+                                                <input type="number" name='sgst' step="any" id="sgst" value=0.00 readonly style="color: black; background-color: white;" class="form-control border-secondary"/>
+                                                </div>
+                                                <div class="col-sm-4 m-0 p-0"></div>
+                                            </div>
+
+                                            <div class="row container-fluid p-2 m-0">
+                                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">Tax Amount</label></div>
+                                                <div class="col-sm-1 mt-2">:</div>
+                                                <div class="col-sm-7">
+                                                <input type="number" step="any" name='taxamount' id="tax_amount" value=0.00 readonly style="color: black; background-color: white;" class="form-control border-secondary taxamount"/>
+                                                </div>
+                                                <div class="col-sm-4 m-0 p-0"></div>
+                                            </div>
+
+                                            <div class="row container-fluid p-2 m-0">
+                                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">Adjustment</label></div>
+                                                <div class="col-sm-1 mt-2">:</div>
+                                                <div class="col-sm-7">
+                                                <input type="number" step="any" name='adj' id="adj" value=0.00 class="form-control border-secondary" style="color: black; background-color: white;"/>
+                                                </div>
+                                                <div class="col-sm-4 m-0 p-0"></div>
+                                            </div>
+                                            
+                                            <div class="row container-fluid p-2 m-0">
+                                                <div class="col-sm-4 mt-2"><label for="a" class="text-center">Grand Total</label></div>
+                                                <div class="col-sm-1 mt-2">:</div>
+                                                <div class="col-sm-7">
+                                                <input type="number" name='grandtotal' id="grandtotal" value=0.00 readonly style="color: black; background-color: white;" class="form-control border-secondary"/>
+                                                </div>
+                                                <div class="col-sm-4 m-0 p-0"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                <div class="row ">
+                                    <div class="col-sm-5 d-flex flex-column mt-2">
+
+                                    </div>
+                                    <div class="col-sm-6 mt-4" id="tab_logic_total" style="color: black; border: 1px solid rgba(128, 128, 128, 0.6); margin-left: 2vh; background-color:white">
+                                        <div class="row container-fluid p-2 m-0">
+                                            <div class="col-sm-4 mt-2"><label for="a" class="text-center">Paid Off</label></div>
+                                            <div class="col-sm-1 mt-2">:</div>
+                                            <div class="col-sm-7">
+                                                <input type="number" step="any" name='paid' id="paid" value=0.00 class="form-control border-secondary" style="color: black; background-color: white;"/>
+                                            </div>
+                                            <div class="col-sm-4 m-0 p-0"></div>
+                                        </div>
+                                        <div class="row container-fluid p-2 m-0">
+                                            <div class="col-sm-4 mt-2"><label for="a" class="text-center">Balance</label></div>
+                                            <div class="col-sm-1 mt-2">:</div>
+                                            <div class="col-sm-7">
+                                                <input type="number" name='baldue' id="baldue" value=0.00 readonly style="color: black; background-color: white;"  class="form-control border-secondary" readonly />
+                                            </div>
+                                            <div class="col-sm-4 m-0 p-0"></div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                          
+                                <div class="col-md-1 mt-4"></div>
+                                <div class="col-md-5 mt-3 d-flex" style="margin-left:5vh">
+                                    <button type="submit" class="btn btn-primary bg-gradient me-3" name="action" value="save_and_new">SAVE & NEW</button>
+                                    <button type="submit" class="btn btn-primary bg-gradient" name="action" value="save">SAVE</button>
+                                </div>
+                           
+                            </div>
+                        </div>
+                    </form>
+                </div>
+    
 
                 <!-- modal start -->
+                
                 <div class="modal fade" id="exampleModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-xl">
                         <div class="modal-content">
@@ -1014,10 +1457,7 @@
 
 
 
-            </div>
-        </div>
-    </div>
-</div>
+       
 
 <script>
     $(document).ready(function () {
