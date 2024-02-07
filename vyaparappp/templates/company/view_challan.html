@@ -297,7 +297,7 @@
                         <!-- Template 1 -->
                         <div  id="printBill1" class="printTemplates template1" style="display: block;">
                             <div class="page bg-white px-3 py-2" >
-                                <div class="row px-3 py-4" style="background-color: #575757;">
+                                <div class="row px-3 py-4" style="background-color: #18bfd9;">
                                     <div id="es_status1" class="col-md-4 d-flex justify-content-start"></div>
                                     <div class="col-md-4 d-flex justify-content-center align-items-center bill_header">
                                         <center class="h4 text-white"><b>DELIVERY CHALLAN</b></center>
@@ -330,7 +330,7 @@
                                 <div class="row mt-3">
                                     <div class="col-md-12">
                                         <table class="table table-striped table-bordered border-dark" style="background-color: #d5dce3;" id="tableTemplate1">
-                                            <thead class="fw-bold" style="background-color: #96989b; color: white;">
+                                            <thead class="fw-bold" style="background-color: #18bfd9; color: white;">
                                                 <tr class="templatetablehead">
                                                     <th class="text-center">Items</th>
                                                     <th class="text-center">HSN Code</th>
@@ -343,14 +343,14 @@
                                             </thead>
                                             <tbody>
                                                 {% for itm in items %}
-                                                    <tr>
-                                                        <td class="text-center">{{ itm.name }}</td>
-                                                        <td class="text-center">{{ itm.hsn }}</td>
-                                                        <td class="text-center">{{ itm.quantity }}</td>
-                                                        <td class="text-center">{{ itm.price  }}</td>
-                                                        <td class="text-center">{{ itm.tax  }}</td>
-                                                        <td class="text-center">{{ itm.discount  }}</td>
-                                                        <td class="text-center">{{ itm.total }}</td>
+                                                    <tr >
+                                                        <td class="text-center" style="background-color:white">{{ itm.name }}</td>
+                                                        <td class="text-center" style="background-color:white">{{ itm.hsn }}</td>
+                                                        <td class="text-center" style="background-color:white">{{ itm.quantity }}</td>
+                                                        <td class="text-center" style="background-color:white">{{ itm.price  }}</td>
+                                                        <td class="text-center" style="background-color:white">{{ itm.tax  }}</td>
+                                                        <td class="text-center" style="background-color:white">{{ itm.discount  }}</td>
+                                                        <td class="text-center" style="background-color:white">{{ itm.total }}</td>
                                                     </tr>
                                                 {% endfor %}
                                             </tbody>
@@ -426,7 +426,7 @@
                         <!-- Template 2 -->
                         <div  id="printBill2" class="printTemplates template2" style="display: none;">
                             <div class="page bg-white px-3 py-2" >
-                                <div class="row px-3 py-4" style="background-color: #8a8d91;">
+                                <div class="row px-3 py-4" style="background-color: #615dff;">
                                     <div id="es_status2" class="col-md-4 d-flex justify-content-start align-items-center">
                                         <span class="p-2 px-4 fw-bolder" style="background-color: #d1cbc391; color: white;">{{bill.status}}</span>
                                     </div>
@@ -473,8 +473,8 @@
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-md-12">
-                                        <table class="table table-bordered border-dark" style="background-color: #8a8d91; color: white;" id="tableTemplate2">
-                                            <thead class="fw-bold" style="background-color: #505763;">
+                                        <table class="table table-bordered border-dark" style=" color:black;" id="tableTemplate2">
+                                            <thead class="fw-bold" style="background-color: #615dff;">
                                                 <tr class="templatetablehead">
                                                     <th class="text-center">Items</th>
                                                     <th class="text-center">HSN Code</th>
@@ -571,14 +571,14 @@
                         <!-- Template 3 -->
                         <div  id="printBill3" class="printTemplates template3" style="display: none;">
                             <div class="page bg-white px-3 py-2" >
-                                <div class="row px-3 pt-4 pb-0">
+                                <div class="row px-3 pt-4 pb-0"  style="background-image: linear-gradient(#3dd9eb, #615dff); color: white;">
                                     <div id="es_status3" class="col-md-4 d-flex justify-content-start align-items-center">
                                         <span class="p-2 px-4 fw-bolder" style="background-color: #3dd9eb; color: white;">{{bill.status}}</span>
                                     </div>
-                                    <div class="col-md-4 d-flex justify-content-center align-items-center bill_header">
+                                    <div class="col-sm-12 d-flex justify-content-center align-items-center bill_header" >
                                         <!-- <center class="h4 text-dark"><b>DELIVERY CHALLAN</b></center> -->
-                                        <center class="">
-                                            <h4 class="text-secondary" style="font-weight: bold;">{{company.company_name }}</h4>
+                                        <center class="" >
+                                            <h4 class="text-light" style="font-weight: bold;color:white;">{{company.company_name }}</h4>
                                             <p class="address" style="font-weight: normal; color: #000;"> {{company.address}}<br>
                                                 {{company.state}} - {{company.country}}<br>
                                                 {{company.user.email}}<br>
@@ -628,7 +628,7 @@
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-md-12">
-                                        <table class="table table-striped border-dark" id="tableTemplate3" style="background-color: #77e5f178;">
+                                        <table class="table table-hover table-bordered" id="tableTemplate3" style="background-color: #77e5f178;">
                                             <thead class="" style="background-color: #77e5f1;">
                                                 <tr class="templatetablehead">
                                                     <th class="text-center">Items</th>
