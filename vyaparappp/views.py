@@ -5079,12 +5079,16 @@ def save_sales_invoice(request):
 
         
 
-        if 'save_and_new' in request.POST:
-            return render(request, 'staff/add_salesinvoice.html')
-        else:
-            return redirect('view_salesinvoice')
-
+        action = request.POST.get('action', '')
+      
+        if action == 'save_and_new':
+          return render(request, 'company/add_salesinvoice.html')
+            
+        elif action == 'save':
+          return redirect('view_salesinvoice')
+            
     return render(request, 'company/add_salesinvoice.html')
+
 
 def view_salesinvoice(request):
     if 'staff_id' in request.session:
@@ -6946,29 +6950,37 @@ def order_to_bill(request,id):
 # ===================Nasneen===========
 
 def sale_order(request):
-  
-  if 'staff_id' in request.session:
-    if request.session.has_key('staff_id'):
-      staff_id = request.session['staff_id']
-           
-    else:
-      return redirect('/')
-  staff =  staff_details.objects.get(id=staff_id)
-  allmodules= modules_list.objects.get(company=staff.company,status='New')
+    if 'staff_id' in request.session:
+        if request.session.has_key('staff_id'):
+            staff_id = request.session['staff_id']
+        else:
+            return redirect('/')
+    
+    staff = staff_details.objects.get(id=staff_id)
+    allmodules = modules_list.objects.get(company=staff.company, status='New')
 
-  sale = salesorder.objects.filter(comp=staff.company)
-  for i in sale:
-      last_transaction = saleorder_transaction.objects.filter(sales_order=i).order_by('-id').first()
-      i.last= last_transaction.action
-      i.by=last_transaction.staff
-      print(last_transaction.action)
-      
-      
+    sale = salesorder.objects.filter(comp=staff.company)
+    
+    
+    for i in sale:
+        last_transaction = saleorder_transaction.objects.filter(sales_order=i).last()
+        
+        if last_transaction is not None:
+            i.last = last_transaction.action
+            i.by = last_transaction.staff
+            print(last_transaction.action)
+        else:
+            i.last = "No transaction"  # Set a default value or handle accordingly
 
-  context={
-    'sale':sale,'staff':staff,'allmodules':allmodules
-  }
-  return render(request, 'company/sale_order.html',context)
+    context = {
+        'sale': sale,
+        'staff': staff,
+        'allmodules': allmodules
+    }
+    
+    return render(request, 'company/sale_order.html', context)
+
+
 
 def saleorder_create(request):
   if 'staff_id' in request.session:
@@ -6985,10 +6997,15 @@ def saleorder_create(request):
   item = ItemModel.objects.filter(company=staff.company)
   bnk = BankModel.objects.filter(company=cmp)
   order = salesorder.next_orderno(company_id=staff.company.id)
-  
+  last_sale =salesorder.objects.filter(comp=cmp).count()
+
+  if last_sale:
+    saleorder = last_sale + 1 
+  else:
+    saleorder = 1
   
   context={
-    'party':par,'item':item,'staff':staff,'order':order,'bnk':bnk,'allmodule':allmodules
+    'party':par,'item':item,'staff':staff,'order':order,'bnk':bnk,'allmodule':allmodules,'saleorder':saleorder
   }
   return render(request, 'company/saleorder_create.html',context)
 
@@ -7034,14 +7051,13 @@ def getproduct(request):
 
 @login_required(login_url='login')
 def create_saleorder(request):
-  if 'staff_id' in request.session:
-    if request.session.has_key('staff_id'):
-      staff_id = request.session['staff_id']
-           
-    else:
-      return redirect('/')
-  staff =  staff_details.objects.get(id=staff_id)
   if request.method == 'POST':
+    sid = request.session.get('staff_id')
+    staff = staff_details.objects.get(id=sid)
+    cmp = company.objects.get(id=staff.company.id)    
+    staff = staff_details.objects.get(id=sid)
+
+ 
     prtyid = request.POST.get('party')
     prty=party.objects.get(id=prtyid)
     # staff =  staff_details.objects.get(id=staff_id)
@@ -7130,12 +7146,17 @@ def create_saleorder(request):
         sales_order=salesorderid,staff=staff,company=cmp,action="Created",date=date.today()
       )
       tran.save()
-    if request.POST.get('save_and_next'):
-      return redirect('saleorder_create')
-    elif request.POST.get('save'):
-      return redirect('sale_order')
-    
-  return redirect('sale_order')
+      action = request.POST.get('action', '')
+      print('act===',action)
+
+      if action == 'save_and_new':
+        return redirect('saleorder_create')
+          
+      elif action == 'save':
+        return redirect('sale_order')
+          
+  return render(request, 'company/saleorder_create.html')
+
       
 def saleorder_view(request,id):
   if 'staff_id' in request.session:
@@ -12210,3 +12231,149 @@ def Restart_payment_terms(request):
     
     
       return redirect('log_page')
+
+
+#Keerthana
+    
+
+# def importsalesOrder_excel(request):
+#   if request.method == 'POST' and request.FILES['billfile'] and request.FILES['prdfile']:
+#     if 'staff_id' in request.session:
+#       if request.session.has_key('staff_id'):
+#         staff_id = request.session['staff_id']
+#       else:
+#         return redirect('/')
+#       staff = staff_details.objects.get(id=staff_id)
+#       cmp = company.objects.get(id=staff.company.id)
+#       totval = int(salesorder.objects.filter(company=cmp).last().invoice_no) + 1
+
+#       excel_bill = request.FILES['billfile']
+#       excel_b = load_workbook(excel_bill)
+#       eb = excel_b['Sheet1']
+#       excel_prd = request.FILES['prdfile']
+#       excel_p = load_workbook(excel_prd)
+#       ep = excel_p['Sheet1']
+
+#       for row_number1 in range(2, eb.max_row + 1):
+#             billsheet = [eb.cell(row=row_number1, column=col_num).value for col_num in range(1, eb.max_column + 1)]
+#             part = party.objects.get(party_name=billsheet[0], email=billsheet[1], company=cmp)
+#             salesorder.objects.create(party=part,
+#                                         date=billsheet[2],
+#                                         state_of_supply=billsheet[3],
+#                                         invoice_no=totval,
+#                                         company=cmp, staff=staff)
+#             invoice = salesorder.objects.last()
+#             if billsheet[4] == 'Cheque':
+#                 invoice.payment_method = 'Cheque'
+#                 invoice.checkno = billsheet[5]
+#             elif billsheet[4] == 'UPI':
+#                 invoice.payment_method = 'UPI'
+#                 invoice.UPI = billsheet[5]
+#             else:
+#                 if billsheet[4] != 'Cash':
+#                     bank = BankModel.objects.get(bank_name=billsheet[4], company=cmp)
+#                     invoice.payment_method = bank
+#                 else:
+#                     invoice.payment_method = 'Cash'
+#             invoice.save()
+
+#             salesorder.objects.filter(company=cmp)
+#             totval += 1
+#             subtotal = 0
+#             total_taxamount = 0
+#             for row_number2 in range(2, ep.max_row + 1):
+#                 prdsheet = [ep.cell(row=row_number2, column=col_num).value for col_num in range(1, ep.max_column + 1)]
+#                 if prdsheet[0] == row_number1:
+#                     itm = ItemModel.objects.get(item_name=prdsheet[1], item_hsn=prdsheet[2], company=cmp)
+#                     total = int(prdsheet[3]) * int(itm.item_sale_price) - int(prdsheet[4])
+#                     sales_item.objects.create(salesinvoice=invoice,
+#                                                     company=cmp,
+#                                                     item=itm,
+#                                                     staff=staff,
+#                                                     quantity=prdsheet[3],
+#                                                     discount=prdsheet[4],
+#                                                     tax=prdsheet[5],
+#                                                     totalamount=total)
+                   
+#                     tax=int(prdsheet[5])
+
+#                     subtotal += total
+#                     tamount = total * (tax / 100)
+#                     total_taxamount += tamount
+
+#                     if billsheet[3] == 'state':
+#                         gst = round((total_taxamount / 2), 2)
+#                         invoice.SGST = gst
+#                         invoice.CGST = gst
+#                         invoice.IGST = 0
+#                     else:
+#                         gst = round(total_taxamount, 2)
+#                         invoice.IGST = gst
+#                         invoice.CGST = 0
+#                         invoice.SGST = 0
+
+#             gtotal = subtotal + total_taxamount + float(billsheet[6])
+#             balance = gtotal - float(billsheet[7])
+#             gtotal = round(gtotal, 2)
+#             balance = round(balance, 2)
+
+#             invoice.subtotal = round(subtotal, 2)
+#             invoice.taxamount = round(total_taxamount, 2)
+#             invoice.adjustment = round(billsheet[6], 2)
+#             invoice.grandtotal = gtotal
+#             invoice.paid = round(billsheet[7], 2)
+#             invoice.balance = balance
+#             invoice.save()
+
+#             saleorder_transaction.objects.create(salesinvoice=invoice, staff=invoice.staff, company=invoice.company,
+#                                                       action='Created', done_by_name=invoice.staff.first_name)
+
+#             return JsonResponse({'message': 'File uploaded successfully!'})
+#       else:
+#         return JsonResponse({'message': 'File upload Failed!'})
+
+#     return render(request, 'company/sale_order.html')    
+    
+
+def sharedeliverychallanEmail(request,id):
+  if request.user:
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+    
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                print(emails_list)
+
+                sid = request.session.get('staff_id')
+                staff =  staff_details.objects.get(id=sid)
+                cmp = company.objects.get(id=staff.company.id) 
+               
+                challan = DeliveryChallan.objects.get(id=id,company=cmp)
+                challanitem = DeliveryChallanItems.objects.filter(cid=challan,company=cmp)
+                        
+                context = {'challan':challan, 'cmp':cmp,'challanitem':challanitem}
+                template_path = 'company/creditnoteshare.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'DELIVERYCHALLAN - {challan.challan_no}.pdf'
+                subject = f"DELIVERYCHALLAN - {challan.challan_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached Challan - File-{challan.challan_no}. \n{email_message}\n\n--\nRegards,\n{cmp.company_name}\n{cmp.address}\n{cmp.state} - {cmp.country}\n{cmp.contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                msg = messages.success(request, 'Challan file has been shared via email successfully..!')
+                return redirect(viewChallan,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(viewChallan, id)
+            
+from decimal import Decimal, getcontext
+getcontext().prec = 10   
+   
