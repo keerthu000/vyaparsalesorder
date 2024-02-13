@@ -74,37 +74,54 @@
         border-radius: 5px;
     }
 </style>
+<div class="body-wrapper">
+    <br><br><br>
+    <div class="row p-0 m-0">
+        <div class="col-12  p-0 m-0">
+            <div class=" bg-light bg-light pb-0 mb-0 p-2" style="height:100%;width:100%">
+                <div class="d-flex justify-content-center pt-4">
+                    <a href="" id="b1" class="btn  text-white"
+                        style="margin-right: 10px; background-color: rgb(252, 3, 3,0.7);border-radius: 20px;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">Add
+                        Sale <i class="fa fa-plus"></i></a>
+                    <a href="" id="b2" class="btn  text-white"
+                        style="margin-right: 10px;background-color: rgba(3, 161, 252, 0.7);border-radius: 20px;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">Add
+                        Purchase <i class="fa fa-plus"></i></a>
+                    <a href="" id="b3" class="btn text-primary"
+                        style="border-radius: 20px;border: 1px solid rgb(40, 12, 222);background-color: white;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">Add
+                        More <i class="fa fa-plus"></i></a>
+                </div>
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>
 
                 <div style="background-color: rgba(176, 199, 205, 0.4);">
                     
-                    <form method="POST" action="{% url 'create_saleorder' %}" class="p-5" enctype="multipart/form-data" novalidate
+                    <form method="POST" action="{% url 'create_saleorder' %}" class="p-5"  enctype="multipart/form-data" novalidate
                         id="forms">
                         {% csrf_token %}
                         <div class="body-wrapper">
                             <div class="d-flex justify-content-end">
                                 <div class="ml-auto">
-                                    <a href="{% url 'view_salesinvoice' %}" style="font-size: x-large; color: black;" title="Close">
+                                    <a href="{% url 'sale_order' %}" style="font-size: x-large; color: black;" title="Close">
                                         <i class="fa fa-times-circle fs-6 tb close_pad mt-4" aria-hidden="true " ></i>
                                     </a>
                                 </div>
                             </div>
                             <div class="container-fluid" style="margin-left: -4vw; margin-top: -4vw;">
                                 <div class="col-md-3">
-                                    <a class="text-dark" style="font-size: 1.5rem;">Add Sales Order</a>
+                                    <a class="text-dark" style="font-size: 1.5rem;">CREATE SALE ORDER</a>
                                 </div>
                                 
-                                <!-- <input class="hidden"  id="state1" name="hidden_state1" value="">
-                                <input class="hidden"  id="state" name="hidden_state" value="">
-
-                                <input class="hidden" type="text" name="samp" id="samp" >
-                                <input class="hidden"  id="cus_place" name="hidden_cus_place"  value=""> -->
+                                
                                 <div class="row">
                                 <div class="col-md-4">
                                 <label class="col-form-label">Party</label>
                                 <div class="d-flex ">
-                                    <select name="party" id="party"
+                                <select name="party" id="party"
                                     class="form-control border-secondary">
-                                    <option value="" selected>Select</option>
+                                    <option value="" selected></option>
                                     {% for c in party %}
 
                                     <option value={{c.id}}> {{ c.party_name }}</option>
@@ -232,7 +249,7 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <label class="col-form-label">State of Supply</label>
-                                       <select style="color: black;  width: 21.5vw;" class="form-control  bg-light me-2  border-secondary" id="stateofsply"
+                                       <select style="color: black;  width: 21.5vw;" class="form-control  bg-light me-2  border-secondary  stateofsply" id="stateofsply"
                                        name="stateofsply">
                                             <option value="">State of supply</option>
                                             <option value="State">State</option>
@@ -336,8 +353,8 @@
                                                 <td><input type="number" name='qty[]'
                                                         style="background-color: white;color: black;padding:8px 3px;"
                                                         placeholder='Enter Qty' id="qty1"
-                                                        class="form-control border-secondary qty" step=0
-                                                        min=0  required/>
+                                                        class="form-control border-secondary qty" step=1
+                                                        min=0  value=1 />
                                                     <!-- <div style="margin-top: 5Px;" class="d-flex">
                                                         <span>Available Qty :</span> <span id="qtyspan1"
                                                             class=''></span></div> -->
@@ -373,7 +390,7 @@
                                                         style="background-color: white;color: black;padding:8px 3px;"
                                                         placeholder=0
                                                         class="form-control total border-secondary"
-                                                        value=0 step="any" readonly />
+                                                        readonly />
                                                 </td>
                                                 <td style="display: none;"><input type="number"
                                                         step="any" name='taxamount[]' id="taxamount1"
@@ -510,18 +527,28 @@
 
 
 
-                            <div class="row">
+                          
                                 <div class="col-md-1 mt-4"></div>
                                 <div class="col-md-5 mt-3 d-flex" style="margin-left:5vh">
-                                    <input type="submit" class="btn btn-primary bg-gradient me-3" name="save_and_next" value="SAVE & NEXT"></input> 
-                                    <input type="submit" class="btn btn-primary bg-gradient" name="save" value="SAVE"></input>
+                                    <button type="submit" class="btn btn-primary bg-gradient me-3" name="action" value="save_and_new">SAVE & NEW</button>
+                                    <button type="submit" class="btn btn-primary bg-gradient" name="action" value="save">SAVE</button>
                                 </div>
-                            </div>
+                           
                             </div>
                         </div>
                     </form>
                 </div>
-
+                {% comment %} <script>
+                    function saveAndNew() {
+                        // Add logic to redirect to the create sales order page for save and new
+                        window.location.href = 'saleorder_create';
+                    }
+                
+                    function save() {
+                        // Add logic to redirect to the sales order page for save
+                        window.location.href = 'sale_order';
+                    }
+                </script> {% endcomment %}
            
 {% comment %} <div style="background-color: rgba(176, 199, 205, 0.4);">
     <div class="body-wrapper">
@@ -2254,10 +2281,11 @@
 
                 success: function (response) {
                     data = response.hsn
-                    // data2 = response.qty
+                    //data2 = response.qty
                     dataprice = response.price
                     datagst = response.gst
                     dataigst = response.igst
+                    console.log('dataprice',dataprice)
 
 
 
@@ -2269,6 +2297,7 @@
 
                         document.getElementById('intrataxval'+n).value = datagst;
                         document.getElementById('intertaxval'+n).value = dataigst;
+                        performCalculations(n);
                     }
                     else if (document.getElementById('stateofsply').value == 'Other State') {
                         document.getElementById('select_tax' + n).value = dataigst;
@@ -2277,6 +2306,7 @@
 
                         document.getElementById('intrataxval'+n).value = datagst;
                         document.getElementById('intertaxval'+n).value = dataigst;
+                        performCalculations(n);
 
                     }
                     else {
@@ -2290,9 +2320,7 @@
                 },
             });
 
-            // $(document).on('input', '#tab_logic tbody tr .qty, #tab_logic tbody tr .price, #tab_logic tbody tr .disc', function () {
-            //     calc();
-            // });
+           
         });
 
 
@@ -2300,34 +2328,34 @@
         //        
         // }
         
-
+        
         $(document).ready(function () {
-  
-            
+           
             function performCalculations(row) {
-                    var qty = row.find('.qty').val();
-                    var price = row.find('.price').val();
-                    var dis = row.find('.disc').val();
-                    var taxlabel = row.find('.seltax').val();
-                    var tax = extractTaxRate(taxlabel);
-
-                    console.log(qty);
-                    console.log(price);
-                    console.log("====================");
-                    console.log(tax);
+                var price = row.find('.price').val();
+                var qty = row.find('.qty').val();
                     
-                    row.find('.total').val((parseFloat(qty) * parseFloat(price)) - parseFloat(dis));
-                    row.find('.taxamount').val(((qty * price) - dis) * (tax / 100));
+                var dis = row.find('.disc').val();
+                var taxlabel = row.find('.seltax').val();
+                var tax = extractTaxRate(taxlabel);
+
+                console.log(qty);
+                console.log('price',price);
+                console.log(tax);
+                    
+                row.find('.total').val((parseFloat(qty) * parseFloat(price)) - parseFloat(dis));
+                row.find('.taxamount').val(((qty * price) - dis) * (tax / 100));
 
                     // Your additional calculations here
-                    calc_total();
-                }
+                calc_total();
+            }
 
                 // Event handler for input change on qty, price, disc, and seltax
-                $(document).on('input change keyup', '#tab_logic tbody tr .qty, #tab_logic tbody tr .price, #tab_logic tbody tr .disc, #tab_logic tbody tr .seltax', function () {
-                    var row = $(this).closest('tr');
-                    performCalculations(row);
-                });
+            $(document).on('input change keyup', '#tab_logic tbody tr .qty, #tab_logic tbody tr .price, #tab_logic tbody tr .disc, #tab_logic tbody tr .seltax', function () {
+                var row = $(this).closest('tr');
+                performCalculations(row);
+            });
+        //     
 
                 $('#paymethode').change(function () {
 
@@ -2539,7 +2567,7 @@
 
     function validatePhoneNumber(inputElement) {
         const phoneNumber = inputElement.value;
-        const validationSpan = document.getElementById("contact-validation");
+        const validationSpan = document.getElementById("partyphno");
 
         // Regular expression to check for a 10-digit number
         const regex = /^[0-9]{10}$/;
@@ -2557,7 +2585,7 @@
 
     function validateGSTIN(inputElement) {
         const gstin = inputElement.value;
-        const validationSpan = document.getElementById("gstno-validation");
+        const validationSpan = document.getElementById("gstin");
 
         // Regular expression to check for a valid GSTIN pattern
         const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9][A-Z][A-Z0-9]$/;
@@ -2572,7 +2600,6 @@
             validationSpan.style.color = "red";
         }
     }
-
 </script>
 
 
