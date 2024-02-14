@@ -342,23 +342,27 @@
                                                                 r>+</button>
                                                         </a>
                                                     </div>
-
+                                                    <div id="message1" style="display: none; color: red;">Please add quantity for the selected product</div>
                                                 </td>
                                                 <td><input type="text" name='hsn[]' id="hsn1"
                                                         style="background-color: white;color: black;padding:8px 3px;"
                                                         placeholder='HSN Code'
                                                         class="form-control border-secondary" readonly>
                                                 </td>
+
+
+                                                
                                                 <!-- <td><input type="text" name='description[]' id="description" placeholder='Description' class="form-control"  /></td> -->
                                                 <td><input type="number" name='qty[]'
                                                         style="background-color: white;color: black;padding:8px 3px;"
                                                         placeholder='Enter Qty' id="qty1"
-                                                        class="form-control border-secondary qty" step=1
-                                                        min=0  value=1 />
+                                                        class="form-control border-secondary qty" step=0
+                                                        min=0  value=0 />
                                                     <!-- <div style="margin-top: 5Px;" class="d-flex">
                                                         <span>Available Qty :</span> <span id="qtyspan1"
                                                             class=''></span></div> -->
                                                 </td>
+                                               
                                                 <td><input type="number" name='price[]' id="unit1"
                                                         style="background-color: white;color: black;padding:8px 3px;"
                                                         placeholder='Enter Unit Price'
@@ -538,6 +542,43 @@
                         </div>
                     </form>
                 </div>
+
+
+
+                <script>
+                    // Function to display a message when a product is selected but quantity is not added
+                    function checkQuantity(index) {
+                        var qtyInput = document.getElementById('qty' + index);
+                        var selectedProduct = document.getElementById('product' + index).value;
+                        var messageElement = document.getElementById('message' + index);
+                
+                        if (selectedProduct && qtyInput.value == 0) {
+                            messageElement.style.display = 'block';
+                        } else {
+                            messageElement.style.display = 'none';
+                        }
+                    }
+                
+                    // Attach event listeners to product selects and quantity inputs
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var productSelects = document.querySelectorAll('.product');
+                        productSelects.forEach(function (select, index) {
+                            select.addEventListener('change', function () {
+                                checkQuantity(index + 1);
+                            });
+                        });
+                
+                        var quantityInputs = document.querySelectorAll('.qty');
+                        quantityInputs.forEach(function (input, index) {
+                            input.addEventListener('input', function () {
+                                checkQuantity(index + 1);
+                            });
+                        });
+                    });
+                </script>
+
+
+
                 {% comment %} <script>
                     function saveAndNew() {
                         // Add logic to redirect to the create sales order page for save and new
@@ -2297,7 +2338,7 @@
 
                         document.getElementById('intrataxval'+n).value = datagst;
                         document.getElementById('intertaxval'+n).value = dataigst;
-                        performCalculations(n);
+                       
                     }
                     else if (document.getElementById('stateofsply').value == 'Other State') {
                         document.getElementById('select_tax' + n).value = dataigst;
@@ -2306,7 +2347,7 @@
 
                         document.getElementById('intrataxval'+n).value = datagst;
                         document.getElementById('intertaxval'+n).value = dataigst;
-                        performCalculations(n);
+                      
 
                     }
                     else {
@@ -2317,30 +2358,33 @@
                         selectize.setValue("");
                     }
 
+                    var qty = document.getElementById('qty' + n).value;
+                    if (qty === "0" || qty === "") {
+                        alert('Please add the quantity for the selected product.');
+                    }
+
                 },
             });
 
            
-        });
+        
 
 
-
-        //        
-        // }
         
         
         $(document).ready(function () {
            
             function performCalculations(row) {
-                var price = row.find('.price').val();
+                
                 var qty = row.find('.qty').val();
-                    
+                var price = row.find('.price').val(); 
+                console.log('price',price);   
                 var dis = row.find('.disc').val();
                 var taxlabel = row.find('.seltax').val();
                 var tax = extractTaxRate(taxlabel);
 
                 console.log(qty);
-                console.log('price',price);
+                
                 console.log(tax);
                     
                 row.find('.total').val((parseFloat(qty) * parseFloat(price)) - parseFloat(dis));
@@ -2351,9 +2395,14 @@
             }
 
                 // Event handler for input change on qty, price, disc, and seltax
-            $(document).on('input change keyup', '#tab_logic tbody tr .qty, #tab_logic tbody tr .price, #tab_logic tbody tr .disc, #tab_logic tbody tr .seltax', function () {
+            $(document).on('input change keyup', '#tab_logic tbody tr .qty, #tab_logic tbody tr .product, #tab_logic tbody tr .disc, #tab_logic tbody tr .seltax', function () {
                 var row = $(this).closest('tr');
                 performCalculations(row);
+            });
+            $(document).on('change', '.product', function () {
+                var row = $(this).closest('tr');
+                performCalculations(row);
+                
             });
         //     
 
@@ -2420,7 +2469,7 @@
                         document.getElementById('select_tax'+l).value = val
                     }
                 }
-                $('#tab_logic tbody tr').each(function () {
+                $('#tab_logic tbody tr .product').each(function () {
                     performCalculations($(this));
                  });
                 // calc_total()
@@ -2457,7 +2506,7 @@
             $('#sub_total').val(total.toFixed(2));
             $('#tax_amount').val(taxamount.toFixed(2));
 
-            if (sos === 'Other state') {
+            if (sos === 'Other State') {
                 $('#igst').val(taxamount.toFixed(2));
             }
             else if (sos === 'State') {
@@ -2525,7 +2574,7 @@
 
         });
     });
-
+});
 
 </script>
 
