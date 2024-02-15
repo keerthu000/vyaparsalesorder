@@ -511,7 +511,7 @@
                                 <input type="number" name='hsn[]' id="hsn1" placeholder='HSN' class="form-control border-info bg-light" readonly/>
                                 <input type="text" name="dcItems[]" id="dcitem1" hidden>
                             </td>
-                            <td><input type="number" name='qty[]'placeholder='Quantity' id="qty1" value="" class="form-control border-info bg-light qty" min="1" required/></td>
+                            <td><input type="number" name='qty[]'placeholder='Quantity' id="qty1" value="0" class="form-control border-info bg-light qty" min="1" required/></td>
                             <td><input type="number" name='price[]' id="price1" placeholder='Sale Price' class="form-control border-info bg-light price" step="0.00" min="0" readonly /></td>
                             <td>
                                 <!-- <input type="text" name="tax[]" class="form-control border-info bg-light tax" placeholder="0 %" id="tax1" style="display: block;"> -->
@@ -1224,39 +1224,46 @@
         })
     }
     
-    function getItemDetails(inpId, value){
-        $('#'+inpId).val(value);
-
+   function getItemDetails(inpId, value) {
+        $('#' + inpId).val(value);
+    
         var n = inpId.slice(4);
         $.ajax({
-        url: "{%  url 'getItemData' %}",
-        type : 'GET',
-        data:{
-            id : value,
-            csrfmiddlewaretoken: '{{ csrf_token }}'
+            url: "{%  url 'getItemData' %}",
+            type: 'GET',
+            data: {
+                id: value,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
             },
-        
-        success: function(response) {
-            console.log("ajax",response);
-            if (response.status){
-                document.getElementById('hsn'+n).value = response.hsn;
-                document.getElementById('price'+n).value = response.sale_rate;
-                if(!response.tax){
-                    // document.getElementById('tax'+n).value = 0;
-                    document.getElementById('taxgst'+n).value = 0;
-                    document.getElementById('taxigst'+n).value = 0;
-                }else if(response.tax){
-                    // document.getElementById('tax'+n).value = response.gst;
-                    document.getElementById('taxgst'+n).value = response.gst;
-                    document.getElementById('taxigst'+n).value = response.igst;
+    
+            success: function(response) {
+                console.log("ajax", response);
+                if (response.status) {
+                    document.getElementById('hsn' + n).value = response.hsn;
+                    document.getElementById('price' + n).value = response.sale_rate;
+                    if (!response.tax) {
+                        // document.getElementById('tax'+n).value = 0;
+                        document.getElementById('taxgst' + n).value = 0;
+                        document.getElementById('taxigst' + n).value = 0;
+                    } else if (response.tax) {
+                        // document.getElementById('tax'+n).value = response.gst;
+                        document.getElementById('taxgst' + n).value = response.gst;
+                        document.getElementById('taxigst' + n).value = response.igst;
+                    }
+                    document.getElementById('dcitem' + n).value = response.id;
+                    refreshTax();
+    
+                    // Display notification
+                    var quantityAdded = $('#qty' + n).val();
+                    var itemName = value; // You may need to adjust this based on your response
+                    var notificationMessage = "Please add the quantity for the selected product.";
+                    alert(notificationMessage); // You can replace this with your preferred notification method
                 }
-                document.getElementById('dcitem'+n).value = response.id;
-                refreshTax();
-            }
-        },
+            },
+    
         });
-
     }
+    
 
     // table row clone and remove.
     $(document).on('click','.remove_row',function(){

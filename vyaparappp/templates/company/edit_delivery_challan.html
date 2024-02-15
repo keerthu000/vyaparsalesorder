@@ -138,7 +138,7 @@
             </div>
         </div>
 
-        <div class="row pt-0 m-0 mt-3">
+        {% comment %} <div class="row pt-0 m-0 mt-3">
             <div class="card p-0 bg-light bs">
                 <form action="{% url 'updateChallan' challan.id %}" method="post" class="form">
                     {% csrf_token %}
@@ -353,11 +353,263 @@
                     </div>
                 </form>
             </div>
-        </div>
+        </div> {% endcomment %}
+
+
+        
 
     </div>
 </div> 
+<div style="background-color: rgba(176, 199, 205, 0.4);">
+                    
+    <form method="POST" action="{% url 'updateChallan' challan.id %}" class="p-5"  enctype="multipart/form-data" novalidate
+        id="form">
+        {% csrf_token %}
+        <div class="body-wrapper">
+            <div class="d-flex justify-content-end">
+                <div class="ml-auto">
+                    <a href="{% url 'sale_order' %}" style="font-size: x-large; color: black;" title="Close">
+                        <i class="fa fa-times-circle fs-6 tb close_pad mt-4" aria-hidden="true " ></i>
+                    </a>
+                </div>
+            </div>
+            <div class="container-fluid" style="margin-left: -4vw; margin-top: -4vw;">
+                <div class="col-md-3">
+                    <a class="text-dark" style="font-size: 1.3rem;"><span>EDIT DELIVERY CHALLAN</span></a>
+                </div>
+                
+                
+                <div class="row">
+                <div class="col-md-4">
+                <label class="col-form-label">Party</label>
+                <div class="d-flex ">
+                    <select name="party_name" id="party" class="form-control fw-bolder" required>
+                        <option value="">Select Party</option>
+                        {% for p in parties %}
+                        {% if challan.party_name == p.party_name %}
+                        <option value="{{p.id}}" selected>{{p.party_name}}</option>
+                        {% else %}
+                        <option value="{{p.id}}">{{p.party_name}}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    
+                <button id="modal_closing  d-flex" type="button"
+                class="btn bg-secondary text-light ms-1"
+                data-bs-target="#newParty" data-bs-toggle="modal"
+                data-bs-whatever="@mdo"><span
+                    class="fa fa-plus"></span></button>
 
+                </div>
+                </div>
+                <div class="col-md-4">
+                    <div  id="party_contact">
+                        <label class="col-form-label">Phone No</label>
+                        <input class="form-control border-secondary " id="p_contact" type="text" autocomplete="off" name="contact"  style="color: black;background-color: white;" readonly>
+                    </div>
+                </div>
+                    <div class="col-md-4">
+                        <div id="party_address">
+                            <label class="col-form-label">Address</label>
+                            <input style="color: black;background-color: white; "
+                            class="form-control  border-secondary ms-2  me-2" type="text"
+                            placeholder="ADDRESS" name="address" id="bill_address">
+                        </div>
+                    </div>
+                    
+                    <div class="party_balance mt-3 d-none" id="party_balance">
+                        <label for="p_bal">Balance: </label>
+                        <span id="p_bal" class="fs-5 fw-bold">0</span>
+                        <input type="text" name="p_state" id="p_state" value="" hidden>
+                        <input type="text" name="c_state" id="c_state" value="{{company.state}}" hidden>
+                    </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="col-form-label">Chellan  No.</label>
+                        <input style="color: black;background-color: white; " id="challan_number"
+                        class="form-control fw-normal border-secondary  fs-3"
+                        type="number" placeholder="Order Number" name="challan_no"
+                        value="{{challan.challan_no}}">
+
+                        <br>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="col-form-label">Invoice Date</label>
+                    <input style="color: black;  width: 21.5vw;" class="form-control  bg-light border-secondary" type="date"
+                        placeholder="Date" autocomplete="off" id="inv_date"  name="date" value="{{challan.date | date:'Y-m-d'}}">
+                    </div>
+                   
+                    <div class="col-md-4">
+                        <label class="col-form-label">Due Date</label>
+                    <input style="color: black;  width: 21.5vw;" class="form-control  bg-light border-secondary" type="date"
+                        placeholder="Date" autocomplete="off"   name="due_date"  value="{{challan.due_date | date:'Y-m-d'}}"  id="due_date">
+                    </div>
+                </div>
+                   
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="col-form-label">State of Supply</label>
+                        <select name="state_supply" id="state_of_supply" class="form-control  bg-light  border-secondary" required>
+                            <!-- <option value="">Select</option> -->
+                            {% if challan.state_of_supply == 'State' %}
+                            <option value="state" selected>State</option>
+                            {%else%}
+                            <option value="state">State</option>
+                            {% endif %}
+                            {% if challan.state_of_supply == "Other State" %}
+                            <option value="other" selected>Other State</option>
+                            {% else %}
+                            <option value="other">Other State</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="row px-2 mt-2">
+                        <div class="col-md-12">
+                            <table class="table table-bordered table-light mt-3" id="items_table" style="width:115%">
+                              <thead>
+                                <tr>
+                                  <th class="text-center">#</th>
+                                  <th scope="col" class="text-center col-3">Item</th>
+                                  <th scope="col" class="text-center">HSN</th>
+                                  <th scope="col" class="text-center">Qty</th>
+                                  <th scope="col" class="text-center">Price</th>
+                                  <th scope="col" class="text-center">Tax</th>
+                                  <th scope="col" class="text-center">Discount</th>
+                                  <th scope="col" class="text-center">Amount</th>
+                                  <th></th>
+                                </tr>
+                              </thead>
+                              <tbody id="dc-items-table-body">
+                                {% for p in dcItems %}
+                                <tr id='addr0{{forloop.counter}}'>
+                                    <td class="item_sl_num">{{forloop.counter}}<input type="text"  name='id[]' value="{{ p.id }}" hidden></td>
+                                    <td>
+                                        <div class="w-100">
+                                            <div class="p-0 border-0 bg-none d-flex position-relative" style="display: block;">
+                                                <input type="text" id="item{{forloop.counter}}" value="{{p.name}}" name="item[]" class="dropdown-toggle form-control item-display border-info bg-light" onkeyup="filterFunction($(this).attr('id'))"  data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                                <ul class="dropdown-menu w-100 items-available position-absolute" id="menu1"  style="overflow-y: auto; height: 270px;"> 
+                                                {% for i in items %}
+                                                <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.item_name}}`)">{{i.item_name}}</li>
+                                                {% endfor %}
+                                                </ul>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-bs-target="#newItem" data-bs-toggle="modal"><i class="fa fa-plus"></i></button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="number" name='hsn[]' id="hsn{{forloop.counter}}" value="{{p.hsn}}" placeholder='HSN' class="form-control border-info bg-light" readonly/>
+                                        <input type="text" name="dcItems[]" id="dcitem{{forloop.counter}}" value="{{p.item.id}}" hidden>
+                                    </td>
+                                    <td><input type="number" name='qty[]'placeholder='Quantity' id="qty{{forloop.counter}}" value="{{p.quantity}}" class="form-control border-info bg-light qty" min="1" required/></td>
+                                    <td><input type="number" name='price[]' id="price{{forloop.counter}}" placeholder='Sale Price' value="{{p.price}}" class="form-control border-info bg-light price" step="0.00" min="0" readonly /></td>
+                                    <td>
+                                        <!-- <input type="text" name="tax[]" class="form-control border-info bg-light tax" placeholder="0 %" id="tax1" style="display: block;"> -->
+                                        <input type="text" name="taxgst[]" class="form-control border-info bg-light tax tax-gst" placeholder="0 %" value="{{p.item.item_gst}}" id="taxgst{{forloop.counter}}" style="display: block;" readonly>
+                                        <input type="text" name="taxigst[]" class="form-control border-info bg-light tax tax-igst" placeholder="0 %" value="{{p.item.item_igst}}" id="taxigst{{forloop.counter}}" style="display: none;" readonly>
+                                    </td>
+                                    <td><input type="number" name='discount[]' id="discount{{forloop.counter}}" value="{{p.discount}}" class="form-control border-info bg-light discount" value="0" step="any" /></td>
+                                    <td><input type="number" name='total[]' id="total{{forloop.counter}}" value="{{p.total}}" class="form-control border-info bg-light total" value="0" step="any" readonly /></td>
+                                    <td style="display: none;"><input type="number" step="any" name='taxamount1' id="taxamount{{forloop.counter}}" class="form-control border-info bg-light taxamount"/></td></td>
+                                    <td>
+                                        <button type="button" id="{{forloop.counter}}" class="btn clone_row btn-outline-secondary mb-1 w-100" title="Clone Row"><i class="fa fa-plus"></i></button><br>
+                                        <button type="button" id="{{forloop.counter}}" class="btn remove_row btn-outline-secondary w-100" title="Remove Row"><i class="fa fa-minus"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                              </tbody>
+                            </table>
+                              <tr>
+                                <td><button type="button" id="add_row_btn" class="btn btn-outline-secondary" title="Add Row"><i class="fa fa-plus"></i></button></td>
+                              </tr>
+                              
+                            
+              
+                          </div>
+                    </div>
+                    <div class="row mt-3 px-2">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <textarea name="description" id="description" class="form-control border-secondary bg-light" rows="8" placeholder="Description..">{{challan.description}}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-2"></div>
+                        <div class="col-md-5">
+                            <div class="card px-3 py-4">
+                                <div class="sub_total align-items-center amount_summary">
+                                    <div class="amt_head_label">
+                                        <label>Sub Total</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.subtotal}}" class="form-control border-secondary bg-light" name="subtotal" id="sub_total" readonly>
+                                    </div>
+                                </div>
+                                
+                                <div class="cgst align-items-center amount_summary" id="cgst_val">
+                                    <div class="amt_head_label">
+                                        <label>CGST</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.cgst}}" class="form-control border-secondary bg-light" name="cgst_tax" id="cgst_tax" readonly>
+                                    </div>
+                                </div>
+                                <div class="sgst align-items-center amount_summary" id="sgst_val">
+                                    <div class="amt_head_label">
+                                        <label>SGST</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.sgst}}" class="form-control border-secondary bg-light" name="sgst_tax" id="sgst_tax" readonly>
+                                    </div>
+                                </div>
+                                <div class="igst align-items-center amount_summary" id="igst_val">
+                                    <div class="amt_head_label">
+                                        <label>IGST</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.igst}}" class="form-control border-secondary bg-light" name="igst_tax" id="igst_tax" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="tax_total align-items-center amount_summary">
+                                    <div class="amt_head_label">
+                                        <label>Tax Amount</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.tax_amount}}" class="form-control border-secondary bg-light" name="tax_amount" id="tax_amount" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="adjustment align-items-center amount_summary">
+                                    <div class="amt_head_label">
+                                        <label>Adjustment</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.adjustment}}" class="form-control border-secondary bg-light" step="any" name="adjustment" id="adjustment">
+                                    </div>
+                                </div>
+
+                                <div class="grand_total align-items-center amount_summary">
+                                    <div class="amt_head_label">
+                                        <label>Grand Total</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" class="form-control border-secondary bg-light" value="{{challan.total_amount}}" name="grand_total" id="grand_total" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4 mb-5">
+                        <div class="col-md-4"></div>
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <button id="save_btn" class="btn btn-primary bg-gradient w-50" type="submit">SAVE</button>
+                        </div>
+                        <div class="col-md-4"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
 <!-- new unit modal -->
 <div class="modal fade" id="newUnitModal" tabindex="-1" aria-labelledby="newUnitModalLabel" aria-hidden="true">
@@ -1002,39 +1254,47 @@
         })
     }
     
-    function getItemDetails(inpId, value){
-        $('#'+inpId).val(value);
-
+    function getItemDetails(inpId, value) {
+        $('#' + inpId).val(value);
+    
         var n = inpId.slice(4);
         $.ajax({
-        url: "{%  url 'getItemData' %}",
-        type : 'GET',
-        data:{
-            id : value,
-            csrfmiddlewaretoken: '{{ csrf_token }}'
+            url: "{%  url 'getItemData' %}",
+            type: 'GET',
+            data: {
+                id: value,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
             },
-        
-        success: function(response) {
-            console.log("ajax",response);
-            if (response.status){
-                document.getElementById('hsn'+n).value = response.hsn;
-                document.getElementById('price'+n).value = response.sale_rate;
-                if(!response.tax){
-                    // document.getElementById('tax'+n).value = 0;
-                    document.getElementById('taxgst'+n).value = 0;
-                    document.getElementById('taxigst'+n).value = 0;
-                }else if(response.tax){
-                    // document.getElementById('tax'+n).value = response.gst;
-                    document.getElementById('taxgst'+n).value = response.gst;
-                    document.getElementById('taxigst'+n).value = response.igst;
+    
+            success: function(response) {
+                console.log("ajax", response);
+                if (response.status) {
+                    document.getElementById('hsn' + n).value = response.hsn;
+                    document.getElementById('price' + n).value = response.sale_rate;
+                    if (!response.tax) {
+                        // document.getElementById('tax'+n).value = 0;
+                        document.getElementById('taxgst' + n).value = 0;
+                        document.getElementById('taxigst' + n).value = 0;
+                    } else if (response.tax) {
+                        // document.getElementById('tax'+n).value = response.gst;
+                        document.getElementById('taxgst' + n).value = response.gst;
+                        document.getElementById('taxigst' + n).value = response.igst;
+                    }
+                    document.getElementById('dcitem' + n).value = response.id;
+                    refreshTax();
+    
+                    // Display notification
+                    var quantityAdded = $('#qty' + n).val();
+                    var itemName = value; // You may need to adjust this based on your response
+                    var notificationMessage = "Please add the quantity for the selected product.";
+                    alert(notificationMessage); // You can replace this with your preferred notification method
                 }
-                document.getElementById('dcitem'+n).value = response.id;
-                refreshTax();
-            }
-        },
+            },
+    
         });
-
     }
+    
+
 
     // table row clone and remove.
     $(document).on('click','.remove_row',function(){
