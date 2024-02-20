@@ -206,7 +206,7 @@
                                     </td>
 
                                     <td >
-                                        <input type="number" name='qty[]' id="qty1"  class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" value=0 />
+                                        <input type="number" name='qty[]' id="qty1"  class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" value=1 />
                                     </td>
                                 
                                     <td >
@@ -229,9 +229,9 @@
                                     <td hidden><input type="number" name='taxamount1' id="taxamount1" class="taxamount" /></td>
                                     
                                     <td >
-                                        <button type="button" id="1" class="btn font-weight-bold btn-outline-info rounded-circle clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" ></button>
+                                        {% comment %} <button type="button" id="1" class="btn font-weight-bold btn-outline-info rounded-circle clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" ></button> {% endcomment %}
                                         
-                                        <br>
+                                        
                                         <button type='button' id='1' class="btn btn-transparent text-danger btn-sm btn-outline-danger rounded-circle px-2 my-1 py-.4 remove_row" >X</button>
                                     </td>
                                 </tr>
@@ -349,10 +349,12 @@
 
 
 
-                <div class="col-md-5 mt-4">
-                    <input type="submit" class="btn btn-primary save-button" name="save_and_new" value="Save&New">
-                    <input type="submit" class="btn btn-primary save-button" name="save" value="Save">
-                </div>
+               
+                    <div class="col-md-5 mt-4 d-flex" style="margin-left:5vh">
+                        <button type="submit" class="btn btn-primary bg-gradient me-3" name="action" value="save_and_new">SAVE & NEW</button>
+                        <button type="submit" class="btn btn-primary bg-gradient" name="action" value="save">SAVE</button>
+                    </div>
+                
 
             </div>
         </div>
@@ -940,39 +942,39 @@
         })
     })
 
-    function checkgst(element) {
-        var gstinput = element.value;
-        var gstregexp = "[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}";
-        if (gstinput.match(gstregexp)) {
-            document.getElementById('warngst').innerHTML = '';
-        } else {
-            document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
-            alert('Please provide a valid GST Number');
+  
+        function checkgst(element) {
+            var gstinput = element.value;
+            var gstregexp = /^[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}$/;
+            if (gstinput.match(gstregexp)) {
+                document.getElementById('warngst').innerHTML = '';
+            } else {
+                document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+                alert('Please provide a valid GST Number');
+            }
         }
-    }
+    
 
-    function checkphone(element) {
-        var phoneinput = element.value;
-        var phoneregexp = "[0-9]{10}";
-        if (phoneinput.match(phoneregexp)) {
-            document.getElementById('warnphone').innerHTML = '';
-        } else {
-            document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
-            alert('Please provide a valid Phone Number')
+        function checkphone(element) {
+            var phoneinput = element.value;
+            var phoneregexp = /^[0-9]{10}$/;
+            if (phoneinput.match(phoneregexp)) {
+                document.getElementById('warnphone').innerHTML = '';
+            } else {
+                document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
+                alert('Please provide a valid Phone Number')
+            }
         }
-    }
-
-    function checkhsn(element){
-        var hsninput = element.value;
-        var gstregexp = "[0-9]{6}";
-        if (hsninput.match(gstregexp)) {
-            document.getElementById('warnhsn').innerHTML = '';
-        } else {
-            document.getElementById('warnhsn').innerHTML = 'Please provide a valid HSN Number';
-            alert('Please provide a valid HSN Number');
+        function checkhsn(element) {
+            var hsninput = element.value;
+            var hsnregexp = /^[0-9]{6}$/;
+            if (hsninput.match(hsnregexp)) {
+                document.getElementById('warnhsn').innerHTML = '';
+            } else {
+                document.getElementById('warnhsn').innerHTML = 'Please provide a valid HSN Number';
+                alert('Please provide a valid HSN Number');
+            }
         }
-    }
-
 
     $(document).on("click","#itemsave",function(){
         var item_name = document.getElementById('item_name').value;
@@ -1085,6 +1087,10 @@
                     var selectize = $select[0].selectize;
                     selectize.setValue("");
                 }
+                var qty = document.getElementById('qty' + n).value;
+                    if (qty === "0" || qty === "") {
+                        alert('Please add the quantity for the selected product.');
+                    }
             },
         });
     }
@@ -1477,7 +1483,7 @@ $(document).on("input", "#advance", function(){
                     </td>
 
                     <td style="width:10%">
-                        <input type="number" name='qty[]' value=0 id="qty${roinc}" class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" />
+                        <input type="number" name='qty[]' value="1" id="qty${roinc}" class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" />
                     </td>
 
                     <td tyle="width:12%">
@@ -1505,9 +1511,7 @@ $(document).on("input", "#advance", function(){
                     <td style="width:1%">
                        
                         
-                        <button type="button" id="${roinc}" class="btn font-weight-bold btn-outline-info rounded-circle clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" ></button>
-                        
-                        <br>
+                       
                         <button type='button' id='${roinc}' class="btn btn-transparent text-danger btn-sm btn-outline-danger rounded-circle px-2 my-1 py-.4 remove_row">X</button>
                                     
                     </td>

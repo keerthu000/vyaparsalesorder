@@ -233,9 +233,7 @@
                                     <td hidden><input type="number" name='taxamount1' id="taxamount{{forloop.counter}}"  class="taxamount" /></td>
                                     
                                     <td>
-                                        <button type="button" id="{{forloop.counter}}" class="btn font-weight-bold btn-outline-info rounded-circle clone_row fa fa-clone px-2 my-1 py-1" title="Clone Row" ></button>
                                         
-                                        <br>
                                         <button type="button" id="{{forloop.counter}}" class="btn btn-transparent text-danger btn-sm btn-outline-danger rounded-circle px-2 my-1 py-.4 remove_row" >X</button>
                                     </td>
                                 </tr>
@@ -1042,7 +1040,7 @@ function updatePartyDetails() {
 
     function checkphone(element) {
         var phoneinput = element.value;
-        var phoneregexp = "[0-9]{10}";
+        var phoneregexp = /^[0-9]{10}$/;
         if (phoneinput.match(phoneregexp)) {
             document.getElementById('warnphone').innerHTML = '';
         } else {
@@ -1053,7 +1051,7 @@ function updatePartyDetails() {
 
     function checkhsn(element){
         var hsninput = element.value;
-        var gstregexp = "[0-9]{6}";
+        var gstregexp = /^[0-9]{6}$/;
         if (hsninput.match(gstregexp)) {
             document.getElementById('warnhsn').innerHTML = '';
         } else {
@@ -1572,7 +1570,7 @@ function productsearch(roinc){
                     </td>
 
                     <td style="width:10%">
-                        <input type="number" name='qty[]' value=0 id="qty${roinc}" class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" />
+                        <input type="number" name='qty[]' value=1 id="qty${roinc}" class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" />
                     </td>
 
                     <td tyle="width:12%">
@@ -1599,9 +1597,7 @@ function productsearch(roinc){
                     <td style="width:1%">
                        
                         
-                        <button type="button" id="${roinc}" class="btn font-weight-bold btn-outline-info rounded-circle clone_row fa fa-clone px-1 my-1 py-1" title="Clone Row" ></button>
-                        
-                        <br>
+                       
                         <button type='button' id='${roinc}'
                             class='btn btn-transparent text-danger btn-sm btn-outline-danger rounded-circle px-1 my-1 py-1 remove_row'>X</button>
                                     
@@ -1614,53 +1610,53 @@ function productsearch(roinc){
     });
 
 
-    $(document).on('click','.remove_row',function(){
-        var row_id = $(this).attr("id");
-        $('#addr0'+row_id+'').remove();
-        var table = document.getElementById('tab_logic');
-        var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-        for (var i = 0; i < rows.length; i++) {
-            var cells = rows[i].getElementsByTagName('td');
-            cells[0].innerText = i + 1;
-        }
-        calc();
-    });
-        
-    $(document).on('click','.clone_row',function(){
-        var roinc = $("#items-table-body tr").length;
-        var originalRow = $(this).closest('#items-table-body tr'); 
-        var clonedRow = originalRow.clone();
-
-        clonedRow.attr('id', 'addr0' +(roinc+1));
-
-        clonedRow.find('.nnum').text(roinc+1);
-
-        clonedRow.find('[id]').each(function() {
-            var oldId = $(this).attr('id');
-            var newId = oldId.replace(/\d+/, roinc+1);
-            console.log(newId)
-            $(this).attr('id', newId );
+        $(document).on('click','.remove_row',function(){
+            var row_id = $(this).attr("id");
+            $('#addr0'+row_id+'').remove();
+            var table = document.getElementById('tab_logic');
+            var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            for (var i = 0; i < rows.length; i++) {
+                var cells = rows[i].getElementsByTagName('td');
+                cells[0].innerText = i + 1;
+            }
+            calc();
         });
+            
+        $(document).on('click','.clone_row',function(){
+            var roinc = $("#items-table-body tr").length;
+            var originalRow = $(this).closest('#items-table-body tr'); 
+            var clonedRow = originalRow.clone();
 
-        clonedRow.find('.product').each(function() {
-            $(this).val(originalRow.find('.product').val());
-        });
-        clonedRow.find('.intra_tax').each(function() {
-            $(this).val(originalRow.find('.intra_tax').val());
-        });
-        clonedRow.find('.tax').each(function() {
-            $(this).val(originalRow.find('.tax').val());
-        });
-        originalRow.after(clonedRow);
+            clonedRow.attr('id', 'addr0' +(roinc+1));
 
-        var table = document.getElementById('tab_logic');
-        var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-        for (var i = 0; i < rows.length; i++) {
-            var cells = rows[i].getElementsByTagName('td');
-            cells[0].innerText = i + 1;
-        }
-        calc();
-    });
+            clonedRow.find('.nnum').text(roinc+1);
+
+            clonedRow.find('[id]').each(function() {
+                var oldId = $(this).attr('id');
+                var newId = oldId.replace(/\d+/, roinc+1);
+                console.log(newId)
+                $(this).attr('id', newId );
+            });
+
+            clonedRow.find('.product').each(function() {
+                $(this).val(originalRow.find('.product').val());
+            });
+            clonedRow.find('.intra_tax').each(function() {
+                $(this).val(originalRow.find('.intra_tax').val());
+            });
+            clonedRow.find('.tax').each(function() {
+                $(this).val(originalRow.find('.tax').val());
+            });
+            originalRow.after(clonedRow);
+
+            var table = document.getElementById('tab_logic');
+            var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            for (var i = 0; i < rows.length; i++) {
+                var cells = rows[i].getElementsByTagName('td');
+                cells[0].innerText = i + 1;
+            }
+            calc();
+        });
 
 
 
