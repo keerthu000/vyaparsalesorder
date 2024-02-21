@@ -2643,6 +2643,9 @@ def delivery_challan(request):
     context = {
       'staff':staff, 'company':com,'allmodules':allmodules, 'challan':challan,
     }
+    if not all_challan:
+      return render(request, 'company/challanfirst.html',context)
+
     return render(request, 'company/delivery_challan.html',context)
     
 
@@ -3321,7 +3324,8 @@ def createNewDeliveryChallan(request):
               tax_amount = request.POST['tax_amount'],
               adjustment = request.POST['adjustment'],
               total_amount = request.POST['grand_total'],
-              balance = 0,
+
+              balance = request.POST.get("balance"),
               status = 'Open',
               is_converted = False
             )
@@ -3333,6 +3337,7 @@ def createNewDeliveryChallan(request):
             qty = request.POST.getlist("qty[]")
             price = request.POST.getlist("price[]")
             tax = request.POST.getlist("taxgst[]") if request.POST['state_supply'] == 'state' else request.POST.getlist("taxigst[]")
+            
             discount = request.POST.getlist("discount[]")
             total = request.POST.getlist("total[]")
 
@@ -3712,8 +3717,9 @@ def updateChallan(request, id):
         challan.igst = request.POST['igst_tax']
         challan.tax_amount = request.POST['tax_amount']
         challan.adjustment = request.POST['adjustment']
+        
         challan.total_amount = request.POST['grand_total']
-        challan.balance = 0
+        challan.balance= request.POST['balance']
         challan.status = 'Open'
         challan.is_converted = False
 
@@ -3769,7 +3775,7 @@ def updateChallan(request, id):
         )
         history.save()
 
-        return redirect(viewChallan,id)
+        return redirect(delivery_challan)
     except Exception as e:
       print(e)
       return redirect(editChallan, id)
@@ -5082,7 +5088,7 @@ def save_sales_invoice(request):
         action = request.POST.get('action', '')
       
         if action == 'save_and_new':
-          return render(request, 'company/add_salesinvoice.html')
+          return redirect('add_salesinvoice')
             
         elif action == 'save':
           return redirect('view_salesinvoice')
@@ -7005,7 +7011,7 @@ def saleorder_create(request):
     saleorder = 1
   
   context={
-    'party':par,'item':item,'staff':staff,'order':order,'bnk':bnk,'allmodule':allmodules,'saleorder':saleorder
+    'party':par,'item':item,'staff':staff,'order':order,'bnk':bnk,'allmodules':allmodules,'saleorder':saleorder
   }
   return render(request, 'company/saleorder_create.html',context)
 
@@ -12335,6 +12341,8 @@ def Restart_payment_terms(request):
 #     return render(request, 'company/sale_order.html')    
     
 
+
+
 def sharedeliverychallanEmail(request,id):
   if request.user:
         try:
@@ -12352,9 +12360,10 @@ def sharedeliverychallanEmail(request,id):
                
                 challan = DeliveryChallan.objects.get(id=id,company=cmp)
                 challanitem = DeliveryChallanItems.objects.filter(cid=challan,company=cmp)
+               
                         
                 context = {'challan':challan, 'cmp':cmp,'challanitem':challanitem}
-                template_path = 'company/creditnoteshare.html'
+                template_path = 'company/sharechallan.html'
                 template = get_template(template_path)
 
                 html  = template.render(context)
@@ -12363,11 +12372,11 @@ def sharedeliverychallanEmail(request,id):
                 pdf = result.getvalue()
                 filename = f'DELIVERYCHALLAN - {challan.challan_no}.pdf'
                 subject = f"DELIVERYCHALLAN - {challan.challan_no}"
-                email = EmailMessage(subject, f"Hi,\nPlease find the attached Challan - File-{challan.challan_no}. \n{email_message}\n\n--\nRegards,\n{cmp.company_name}\n{cmp.address}\n{cmp.state} - {cmp.country}\n{cmp.contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached CHALLAN - File-{challan.challan_no}. \n{email_message}\n\n--\nRegards,\n{cmp.company_name}\n{cmp.address}\n{cmp.state} - {cmp.country}\n{cmp.contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
                 email.attach(filename, pdf, "application/pdf")
                 email.send(fail_silently=False)
 
-                msg = messages.success(request, 'Challan file has been shared via email successfully..!')
+                msg = messages.success(request, 'Invoice file has been shared via email successfully..!')
                 return redirect(viewChallan,id)
         except Exception as e:
             print(e)
@@ -12375,5 +12384,5 @@ def sharedeliverychallanEmail(request,id):
             return redirect(viewChallan, id)
             
 from decimal import Decimal, getcontext
-getcontext().prec = 10   
+getcontext().prec = 10  
    
