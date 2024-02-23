@@ -52,6 +52,8 @@
     <form method="POST" action="{% url 'save_sales_invoice' %}" class="p-5" enctype="multipart/form-data" novalidate
         id="forms">
         {% csrf_token %}
+
+        
         <div class="body-wrapper">
             <div class="d-flex justify-content-end">
                 <div class="ml-auto">
@@ -70,6 +72,15 @@
 
                 <input class="hidden" type="text" name="samp" id="samp" >
                 <input class="hidden"  id="cus_place" name="hidden_cus_place"  value=""> -->
+
+
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="color:red;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+
                 <div class="row">
                 <div class="col-md-4">
                 <label class="col-form-label">Party</label>
@@ -358,6 +369,7 @@
 
             </div>
         </div>
+        
     </form>
 
 <!-- party modal start -->
@@ -384,6 +396,7 @@
                                     <label class="col-form-label" style="color: black;">GSTIN</label>
                                     <input type="text" class="form-control border-secondary" onchange="checkgst(this)" id="gstin" name="gstin" style="color: black;" placeholder="29APPCK7465F1Z1">
                                     <div class="text-danger m-2" id="warngst"></div>
+                                    
                                 </div>
                                 <div class="col-md-4">
                                     <label class="col-form-label" for="partyphno" style="color: black;">Mobile</label>
@@ -559,12 +572,12 @@
 
 
 <!-- modal -->
-<div class="modal fade" id="newitem">
+<div class="modal fade" id="newitem"  tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header" style="background-color: rgba(144, 211, 117, 0.098);">
                 <h3 class="text-secondary ms-3">ADD ITEM</h3>
-                <button type="button" class="btn-close me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close me-3" aria-label="Close"></button> <!-- Remove data-bs-dismiss="modal" here -->
             </div>
             <div class="modal-body" style="background-color: rgba(144, 211, 117, 0.098);" >
                 <form method="post" class="needs-validation" novalidate autocomplete="off" id="modalItem">
@@ -586,7 +599,7 @@
                                     <input style="color: black;" class="form-control border-dark fw-bolder" type="number" placeholder="ITEM HSN" id="hsn" name="hsn" onchange="checkhsn(this)" required>
                                     <div class="text-danger m-2" id="warnhsn"></div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <select style="color: black;" class="form-control border-dark bg-light" id="unit" name="unit" required>
                                         <option value="" hidden>Select a unit</option>
                                         <option value="NOS">NOS</option>
@@ -596,9 +609,17 @@
                                         <option value="{{ i.unit_name|upper }}">{{ i.unit_name|upper }}</option>
                                         {% endfor %}
                                     </select>
+                                    <div class="row" style="margin-top:-40px;height:30px;width:50px;margin-left:160px;">
+                                        <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" data-bs-toggle="modal" data-bs-target="#newUnitModal" data-bs-whatever="@mdo"><span class="fa fa-plus"></span></button>                                           </div>
+
+
                                 </div>
+                               
+
                             </div>
+
                             <div>
+                                
                                 <p></p>
                                 <hr class="p-0 m-0">
                                 <div style="background-color: rgba(0, 195, 255, 0.205);" class="p-3 pb-0 mb-0">
@@ -711,7 +732,89 @@
         </div> 
     </div>
 </div>
+<div class="modal fade" id="newUnitModal" tabindex="-1" aria-labelledby="newUnitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="newUnitModalLabel">ADD UNIT</h1>
+          <button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#newItem" aria-label="Close"></button>
+        </div>
+        <div class="modal-body mb-1 pb-1">
+          <!-- <form class="mb-0" action="{% url 'item_unit_create' %}" method="POST"></form> -->
+            <form class="mb-0" id="unit_form">
+            {% csrf_token %}
+                <div class="mb-3">
+                <label for="recipient-name" class="col-form-label">UNIT</label>
+                <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" required>
+                </div>
+                <div class="m-0 text-center">
+                <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example : PCS/BOX/LITER</label>
+                <!-- <textarea class="form-control" id="message-text"></textarea> -->
+                </div>
+                <input hidden id="submit_unit_creation" type="submit">
+            </form>
+        </div>
+        <div class="modal-footer d-flex justify-content-center mt-1">
+          <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" data-bs-toggle="modal" data-bs-target="#newItem">Close</button>
+          <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
+
+
+  <script>
+    function submit_unit_creation_fn()
+    {
+      $('#submit_unit_creation').click()
+    }
+
+    $(document).on("submit", "#unit_form", function(e) {
+        e.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'item_unit_create_salesinvoice' %}",
+            data: {
+                item_unit_name: $("#item_unit_name_id").val(),
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                // Handle success response
+                console.log(response); // Log the response for debugging
+                $('#modal_cls_btn').click(); // Close the modal
+                var unitName = $("#item_unit_name_id").val().toUpperCase(); // Convert unit name to uppercase
+                $('#load_new_unit').val(unitName).text(unitName).prop('selected', true).attr('hidden', false); // Update the selected unit
+            },
+            error: function(xhr, status, error) {
+                // Handle error response
+                console.error(xhr.responseText); // Log the error for debugging
+            }
+        });
+    });
+    
+    // Function to close the item modal
+    function closeItemModal() {
+        $('#newItem').modal('show');
+        $('#newUnitModal').modal('hide');
+    }
+
+    // Function to open the unit modal and close the item modal
+    function openUnitModal() {
+        $('#newItem').modal('hide');
+        $('#newUnitModal').modal('show');
+    }
+
+    // Event listener for the button to open the unit modal
+    $('#modal_closing_btn').click(function() {
+        openUnitModal();
+    });
+
+    // Event listener for the close button in the unit modal
+    $('#modal_cls_btn').click(function() {
+        closeItemModal();
+    });
+</script>
 <!-- item modal end -->
 
 </body>
@@ -976,46 +1079,49 @@
             }
         }
 
-    $(document).on("click","#itemsave",function(){
-        var item_name = document.getElementById('item_name').value;
 
-        if ($('#inclusive').prop('checked')) {
-            tax= $('#inclusive').val();
-        } 
-        else{
-            tax = $('#check').val();
-        }
-
-        if (item_name === ''){
-            alert('Please provide an Item Name');
-        }else{
-            $.ajax({
-                type : 'POST',
-                url:"{% url 'item_save_invoice' %}",
-                data:{
-                    name : $("#item_name").val(),
-                    unit : $("#unit").val(),
-                    hsn : $("#hsn").val(),
-                    taxref : tax,
-                    sell_price : $("#saleprice").val(),
-                    cost_price : $("#purprice").val(),
-                    intra_st : $("#intra_st").val(),
-                    inter_st : $("#inter_st").val(),
-                    itmdate : $("#itmdate").val(),
-                    stock : $("#stock").val(),
-                    itmprice : $("#itmprice").val(),
-                    minstock : $("#minstock").val(),
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                },
-            
-                success: function(response) {
-                    document.getElementById("modalItem").reset();
-                    $('#newitem').modal('hide');
-                    reloadItem();
-                },
-            });  
-        }      
-    });
+        
+        $(document).on("click", "#itemsave", function() {
+            var item_name = $("#item_name").val();
+        
+            // Determine tax type
+            var tax = ($('#inclusive').prop('checked')) ? $('#inclusive').val() : $('#check').val();
+        
+            if (item_name === '') {
+                alert('Please provide an Item Name');
+            } else {
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'item_save_invoice' %}",
+                    data: {
+                        name: $("#item_name").val(),
+                        unit: $("#unit").val(),
+                        hsn: $("#hsn").val(),
+                        taxref: tax,
+                        sell_price: $("#saleprice").val(),
+                        cost_price: $("#purprice").val(),
+                        intra_st: $("#intra_st").val(),
+                        inter_st: $("#inter_st").val(),
+                        itmdate: $("#itmdate").val(),
+                        stock: $("#stock").val(),
+                        itmprice: $("#itmprice").val(),
+                        minstock: $("#minstock").val(),
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            document.getElementById("modalItem").reset();
+                            $('#newitem').modal('hide');
+                            reloadItem();
+                        } else {
+                            // Display error message for duplicate HSN number
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                });
+            }
+        });
+        
 
 
     function reloadItem() {
