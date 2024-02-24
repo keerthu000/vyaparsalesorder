@@ -760,60 +760,53 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 
 
 
   <script>
-    function submit_unit_creation_fn()
-    {
-      $('#submit_unit_creation').click()
-    }
-
-    $(document).on("submit", "#unit_form", function(e) {
-        e.preventDefault();
+    function submit_unit_creation_fn() {
+        // Get the unit name from the input field
+        var unitName = $("#item_unit_name_id").val();
+    
+        // Perform validation if needed
+    
+        // Call the AJAX function to submit the unit creation form
         $.ajax({
             type: 'POST',
             url: "{% url 'item_unit_create_salesinvoice' %}",
             data: {
-                item_unit_name: $("#item_unit_name_id").val(),
+                item_unit_name: unitName,
                 csrfmiddlewaretoken: '{{ csrf_token }}'
             },
             success: function(response) {
-                // Handle success response
-                console.log(response); // Log the response for debugging
-                $('#modal_cls_btn').click(); // Close the modal
-                var unitName = $("#item_unit_name_id").val().toUpperCase(); // Convert unit name to uppercase
-                $('#load_new_unit').val(unitName).text(unitName).prop('selected', true).attr('hidden', false); // Update the selected unit
+                // Log the response for debugging
+                console.log(response);
+                // Check if the response contains a success message
+                if (response.message) {
+                    // Display a success message
+                    alert(response.message);
+                    // Update the unit dropdown
+                    updateUnitDropdown(response.unit_name);
+                    // Clear the input field for unit name
+                    $("#item_unit_name_id").val('');
+                    // Close the unit modal using Bootstrap modal events
+                    $('#newUnitModal').modal('hide');
+                    // Open the item modal
+                    $('#newItem').modal('show');
+                } else {
+                    // Handle the case where there's no success message in the response
+                    alert('Unit not saved. Please try again.');
+                }
             },
             error: function(xhr, status, error) {
                 // Handle error response
-                console.error(xhr.responseText); // Log the error for debugging
+                console.error(xhr.responseText);
+                alert('Error: ' + xhr.responseText);
             }
         });
-    });
+    }
     
-    // Function to close the item modal
-    function closeItemModal() {
-        $('#newItem').modal('show');
-        $('#newUnitModal').modal('hide');
-    }
-
-    // Function to open the unit modal and close the item modal
-    function openUnitModal() {
-        $('#newItem').modal('hide');
-        $('#newUnitModal').modal('show');
-    }
-
-    // Event listener for the button to open the unit modal
-    $('#modal_closing_btn').click(function() {
-        openUnitModal();
-    });
-
-    // Event listener for the close button in the unit modal
-    $('#modal_cls_btn').click(function() {
-        closeItemModal();
-    });
 </script>
 <!-- item modal end -->
 
@@ -1230,46 +1223,7 @@
         });
     }  
 
-    {% comment %} $(document).on("change", "#stateOfSupply", function(){
-        var taxes = document.getElementsByClassName('seltax');
-        for (var i = 0; i < taxes.length; i++) {
-            taxes[i].style.display = 'none';
-        }
-        var table = document.getElementById("items-table-body");
-        var numberOfRows = table.rows.length;
-        var bc = document.getElementById("stateOfSupply").value;
-        if (bc == 'state' ) {
-            document.getElementById('cgstdiv').style.display = 'flex';
-            document.getElementById('sgstdiv').style.display = 'flex';
-            document.getElementById('igstdiv').style.display = 'none'; 
-            $(".inter_tax").removeClass('d-flex');
-            $(".inter_tax").addClass('d-none');
-            $(".intra_tax").removeClass('d-none');
-            $(".intra_tax").addClass('d-flex');
-            for (var l = 1; l <= numberOfRows; l++){
-                val = document.getElementById('intrataxval'+l).value;
-                if(document.getElementById('tax2'+l).value != ' '){
-                    document.getElementById('tax1'+l).value = val
-                }
-            }
 
-        } else {
-            document.getElementById('cgstdiv').style.display = 'none';
-            document.getElementById('sgstdiv').style.display = 'none';
-            document.getElementById('igstdiv').style.display = 'flex';
-            $(".intra_tax").removeClass('d-flex');
-            $(".intra_tax").addClass('d-none');
-            $(".inter_tax").removeClass('d-none');
-            $(".inter_tax").addClass('d-flex');
-            for (var l = 1; l <= numberOfRows; l++){
-                val = document.getElementById('intertaxval'+l).value;
-                if(document.getElementById('tax1'+l).value != ' '){
-                    document.getElementById('tax2'+l).value = val
-                }
-            }
-        }
-        calc()
-    }); {% endcomment %}
 
 
     $(document).on("change", "#stateOfSupply", function(){
@@ -1298,58 +1252,6 @@
     });
 
     
-
-
-    {% comment %} $(document).on('change', '.product',function(){ 
-        var n = $(this).attr("id").slice(7);
-        $.ajax({
-            url: "{% url 'itemdata_salesinvoiceedit' %}",
-            type : 'GET',
-            data:{
-                id : $(this).val(),
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-            
-            success: function(response) {
-                data = response.hsn
-                data2 = response.qty
-                data3 = response.price
-                data4 = response.gst
-                data5 = response.igst
-
-                document.getElementById('hsn'+n).value = data;
-                document.getElementById('unit'+n).value = data3;
-                document.getElementById('intrataxval'+n).value = data4;
-                document.getElementById('intertaxval'+n).value = data5;
-                document.getElementById('select_tax'+n).style.display = 'none';
-                var bc = document.getElementById("stateOfSupply").value;
-                if (bc == 'state' ) {
-                    var taxes = document.getElementsByClassName('seltax');
-                    $(`#tax2${n}`).removeClass('d-flex');
-                    $(`#tax2${n}`).addClass('d-none');
-                    $(`#tax1${n}`).removeClass('d-none');
-                    $(`#tax1${n}`).addClass('d-flex');
-                    if (data4 != ' '){
-                        document.getElementById('tax1'+n).value = data4;
-                    }else{
-                        document.getElementById('tax1'+n).value = ' ';
-                    }
-                            
-                } else {
-                    var taxes = document.getElementsByClassName('seltax');
-                    $(`#tax1${n}`).removeClass('d-flex');
-                    $(`#tax1${n}`).addClass('d-none');
-                    $(`#tax2${n}`).removeClass('d-none');
-                    $(`#tax2${n}`).addClass('d-flex');
-                    if(data5 != ' '){
-                        document.getElementById('tax2'+n).value = data5;
-                    }else{
-                        document.getElementById('tax2'+n).value = ' ';
-                    }
-                }
-            },
-        });
-    }); {% endcomment %}
 
    
 

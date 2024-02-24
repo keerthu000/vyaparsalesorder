@@ -4945,6 +4945,7 @@ def add_salesinvoice(request):
 
   Party=party.objects.filter(company=company_instance)
   item=ItemModel.objects.filter(company=company_instance)
+  item_units = UnitModel.objects.filter(company=company_instance)
   allmodules= modules_list.objects.get(company=staff.company.id,status='New')
   bank=BankModel.objects.filter(company=company_instance)
   toda = date.today()
@@ -4955,7 +4956,7 @@ def add_salesinvoice(request):
   else:
         next_count=1
 
-  return render(request, 'company/add_salesinvoice.html',{'staff':staff,'Party':Party,'item':item,'bank':bank,'count':next_count,'allmodules':allmodules,'todate':todate})
+  return render(request, 'company/add_salesinvoice.html',{'staff':staff,'Party':Party,'item':item,'item_units':item_units,'bank':bank,'count':next_count,'allmodules':allmodules,'todate':todate})
 
 def party_details(request, party_name):
     try:
@@ -5244,10 +5245,21 @@ def salesinvoice_save_parties(request):
 
         staff = staff_details.objects.get(id=staff_id)
         company_instance = staff.company 
-        
+
         party_name = request.POST['partyname']
         gst_no = request.POST['gstin']
         contact = request.POST['partyphno']
+
+        # Check if the GST number or contact number is already registered
+        if party.objects.filter(gst_no=gst_no, company=company_instance).exists():
+            messages.error(request, 'GST number of Party is already registered. ')
+            # If GST number is already registered, do not save and return
+            return redirect('add_salesinvoice')
+        if party.objects.filter(contact=contact, company=company_instance).exists():
+            messages.error(request, 'Contact number of Party is already registered.')
+            # If contact number is already registered, do not save and return
+            return redirect('add_salesinvoice')
+
         gst_type = request.POST['modalgsttype']
         state = request.POST['splystate']
         address = request.POST['baddress']
@@ -5259,20 +5271,20 @@ def salesinvoice_save_parties(request):
         additionalfield1 = request.POST['additional1']
         additionalfield2 = request.POST['additional2']
         additionalfield3 = request.POST['additional3']
-        comp=company_instance
-        if (
-          not party_name
-          
-      ):
-          return render(request, 'add_salesinvoice.html')
+        comp = company_instance
 
-        part = party(party_name=party_name, gst_no=gst_no,contact=contact,gst_type=gst_type, state=state,address=address, email=email, openingbalance=openingbalance,payment=payment,
-                       creditlimit=creditlimit,current_date=current_date,additionalfield1=additionalfield1,additionalfield2=additionalfield2,additionalfield3=additionalfield3,company=comp)
+        if not party_name:
+            return render(request, 'add_salesinvoice.html')
+
+        part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address, email=email,
+                     openingbalance=openingbalance, payment=payment, creditlimit=creditlimit, current_date=current_date,
+                     additionalfield1=additionalfield1, additionalfield2=additionalfield2, additionalfield3=additionalfield3, company=comp)
         part.save() 
 
         return redirect('add_salesinvoice')
 
-    return render(request, 'company/add_salesinvoice.html')  
+    return render(request, 'company/add_salesinvoice.html')
+
 
 
 def deletesalesinvoice(request,id):
@@ -7609,36 +7621,45 @@ def get_bill_date(request):
     return JsonResponse({'bill_date': bill_date})
     
 def item_save_invoice(request):
-  sid = request.session.get('staff_id')
-  staff =  staff_details.objects.get(id=sid)
-  cmp = company.objects.get(id=staff.company.id)
+    sid = request.session.get('staff_id')
+    staff =  staff_details.objects.get(id=sid)
+    cmp = company.objects.get(id=staff.company.id)
 
-  name = request.POST['name']
-  unit = request.POST['unit']
-  hsn = request.POST['hsn']
-  taxref = request.POST['taxref']
-  sell_price = request.POST['sell_price']
-  cost_price = request.POST['cost_price']
-  intra_st = request.POST['intra_st']
-  inter_st = request.POST['inter_st']
+    name = request.POST['name']
+    unit = request.POST['unit']
+    hsn = request.POST['hsn']
+    taxref = request.POST['taxref']
+    sell_price = request.POST['sell_price']
+    cost_price = request.POST['cost_price']
+    intra_st = request.POST['intra_st']
+    inter_st = request.POST['inter_st']
 
-  if taxref != 'Taxable':
-    intra_st = 'GST0[0%]'
-    inter_st = 'IGST0[0%]'
+    if taxref != 'Taxable':
+        intra_st = 'GST0[0%]'
+        inter_st = 'IGST0[0%]'
 
-  itmdate = request.POST.get('itmdate')
-  stock = request.POST.get('stock')
-  itmprice = request.POST.get('itmprice')
-  minstock = request.POST.get('minstock')
+    itmdate = request.POST.get('itmdate')
+    stock = request.POST.get('stock')
+    itmprice = request.POST.get('itmprice')
+    minstock = request.POST.get('minstock')
 
-  if not hsn:
-    hsn = None
+    if not hsn:
+        hsn = None
 
-  itm = ItemModel(item_name=name, item_hsn=hsn,item_unit=unit,item_taxable=taxref, item_gst=intra_st,item_igst=inter_st, item_sale_price=sell_price, 
-                item_purchase_price=cost_price,item_opening_stock=stock,item_current_stock=stock,item_at_price=itmprice,item_date=itmdate,
-                item_min_stock_maintain=minstock,company=cmp,user=cmp.user)
-  itm.save() 
-  return JsonResponse({'success': True})
+    # Check if the HSN already exists
+    if hsn and ItemModel.objects.filter(item_hsn=hsn, company=cmp).exists():
+        return JsonResponse({'success': False, 'message': 'HSN number already exists.'})
+
+    itm = ItemModel(item_name=name, item_hsn=hsn, item_unit=unit, item_taxable=taxref, item_gst=intra_st, item_igst=inter_st, 
+                    item_sale_price=sell_price, item_purchase_price=cost_price, item_opening_stock=stock, item_current_stock=stock,
+                    item_at_price=itmprice, item_date=itmdate, item_min_stock_maintain=minstock, company=cmp, user=cmp.user)
+    itm.save() 
+
+    
+    return JsonResponse({'success': True})
+
+
+
   
 def item_invoicedropdown(request):
   sid = request.session.get('staff_id')
@@ -12385,4 +12406,17 @@ def sharedeliverychallanEmail(request,id):
             
 from decimal import Decimal, getcontext
 getcontext().prec = 10  
+
+
+def item_unit_create_salesinvoice(request):
+  if request.method=='POST':
+    #updated-shemeem
+    sid = request.session.get('staff_id')
+    staff =  staff_details.objects.get(id=sid)
+    cmp = company.objects.get(id=staff.company.id)
+    item_unit_name = request.POST.get('item_unit_name')
+    unit_data = UnitModel(unit_name=item_unit_name,user=cmp.user,company=cmp,)
+    unit_data.save()
+    return JsonResponse({'message': 'Unit saved successfully.', 'unit_name': item_unit_name})
+  return JsonResponse({'error': 'Invalid request method.'}, status=400)
    
