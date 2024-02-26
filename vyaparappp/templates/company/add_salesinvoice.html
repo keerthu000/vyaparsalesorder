@@ -751,12 +751,12 @@
                 <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example : PCS/BOX/LITER</label>
                 <!-- <textarea class="form-control" id="message-text"></textarea> -->
                 </div>
-                <input hidden id="submit_unit_creation" type="submit">
+                <input hidden id="submit_unit_creation" type="submit"> 
             </form>
         </div>
         <div class="modal-footer d-flex justify-content-center mt-1">
           <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" data-bs-toggle="modal" data-bs-target="#newItem">Close</button>
-          <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
+          <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()" data-bs-target="#newItem">ADD</button>
         </div>
       </div>
     </div>
@@ -764,7 +764,7 @@
 
 
 
-  <script>
+<script>
     function submit_unit_creation_fn() {
         // Get the unit name from the input field
         var unitName = $("#item_unit_name_id").val();
@@ -790,10 +790,11 @@
                     updateUnitDropdown(response.unit_name);
                     // Clear the input field for unit name
                     $("#item_unit_name_id").val('');
-                    // Close the unit modal using Bootstrap modal events
-                    $('#newUnitModal').modal('hide');
-                    // Open the item modal
+                    // Do not close the unit modal
+                    // Display the newItem modal
                     $('#newItem').modal('show');
+                    // Close the newUnitModal
+                    $('#newUnitModal').modal('hide');
                 } else {
                     // Handle the case where there's no success message in the response
                     alert('Unit not saved. Please try again.');
@@ -806,8 +807,18 @@
             }
         });
     }
-    
+
+    // Placeholder function for updating the unit dropdown
+    function updateUnitDropdown(unitName) {
+        // You need to implement this function to update the dropdown with the new unit
+        // Example:
+        $("#unit").append('<option value="' + unitName + '">' + unitName + '</option>');
+    }
 </script>
+
+
+
+
 <!-- item modal end -->
 
 </body>
