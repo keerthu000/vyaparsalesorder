@@ -42,6 +42,52 @@
         border-color: #54B4D3;
         border-radius: 5px;
     }
+    .unit-modal {
+        margin-left:350px;
+        display: none;
+        position: fixed;
+        z-index: 1051; /* Ensure it has a higher z-index than Bootstrap modal */
+        left: 0;
+        top: 40px;
+        width: 50%;
+        height: 70%;
+        overflow: hidden;
+        background-color:lightblue;
+       
+        border: 1px solid #888;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+   
+
+        
+    
+    .unit-modal-content {
+         #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        width: 80%;
+        z-index: 1052; 
+        background-color:white;
+        
+    }
+    
+    .close-btn {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
 </style>
 
 
@@ -610,9 +656,32 @@
                                         {% endfor %}
                                     </select>
                                     <div class="row" style="margin-top:-40px;height:30px;width:50px;margin-left:160px;">
-                                        <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" data-bs-toggle="modal" data-bs-target="#newUnitModal" data-bs-whatever="@mdo"><span class="fa fa-plus"></span></button>                                           </div>
+                                        <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" onclick="openUnitModal()"><span class="fa fa-plus"></span></button>                                           </div>
 
 
+                                </div>
+
+                                <div class="overlay" id="overlay"></div>
+                                <div id="unitModal" class="unit-modal">
+                                    <div class="unit-modal-content">
+                                        <span class="close-btn" onclick="closeUnitModal()">&times;</span>
+                                        <h1 class="modal-title fs-5">ADD UNIT</h1>
+                                        <form class="mb-0" id="unit_form">
+                                            {% csrf_token %}
+                                            <div class="mb-3">
+                                                <label for="item_unit_name_id" class="col-form-label">UNIT</label>
+                                                <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" required>
+                                            </div>
+                                            <div class="m-0 text-center">
+                                                <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example: PCS/BOX/LITER</label>
+                                            </div>
+                                            <input hidden id="submit_unit_creation" type="submit"> 
+                                        </form>
+                                        <div class="modal-footer d-flex justify-content-center mt-1">
+                                            <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" onclick="closeUnitModal()">Close</button>
+                                            <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
+                                        </div>
+                                    </div>
                                 </div>
                                
 
@@ -732,35 +801,8 @@
         </div> 
     </div>
 </div>
-<div class="modal fade" id="newUnitModal" tabindex="-1" aria-labelledby="newUnitModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="newUnitModalLabel">ADD UNIT</h1>
-          <button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#newItem" aria-label="Close"></button>
-        </div>
-        <div class="modal-body mb-1 pb-1">
-          <!-- <form class="mb-0" action="{% url 'item_unit_create' %}" method="POST"></form> -->
-            <form class="mb-0" id="unit_form">
-            {% csrf_token %}
-                <div class="mb-3">
-                <label for="recipient-name" class="col-form-label">UNIT</label>
-                <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" required>
-                </div>
-                <div class="m-0 text-center">
-                <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example : PCS/BOX/LITER</label>
-                <!-- <textarea class="form-control" id="message-text"></textarea> -->
-                </div>
-                <input hidden id="submit_unit_creation" type="submit"> 
-            </form>
-        </div>
-        <div class="modal-footer d-flex justify-content-center mt-1">
-          <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" data-bs-toggle="modal" data-bs-target="#newItem">Close</button>
-          <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()" data-bs-target="#newItem">ADD</button>
-        </div>
-      </div>
-    </div>
-</div>
+
+
 
 
 
@@ -792,9 +834,7 @@
                     $("#item_unit_name_id").val('');
                     // Do not close the unit modal
                     // Display the newItem modal
-                    $('#newItem').modal('show');
-                    // Close the newUnitModal
-                    $('#newUnitModal').modal('hide');
+                    closeUnitModal()
                 } else {
                     // Handle the case where there's no success message in the response
                     alert('Unit not saved. Please try again.');
@@ -813,6 +853,15 @@
         // You need to implement this function to update the dropdown with the new unit
         // Example:
         $("#unit").append('<option value="' + unitName + '">' + unitName + '</option>');
+    }
+</script>
+<script>
+    function openUnitModal() {
+        document.getElementById('unitModal').style.display = 'block';
+    }
+    
+    function closeUnitModal() {
+        document.getElementById('unitModal').style.display = 'none';
     }
 </script>
 

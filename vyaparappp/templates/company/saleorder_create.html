@@ -73,6 +73,42 @@
         border: #54B4D3 1px solid;
         border-radius: 5px;
     }
+    .unit-modal {
+        margin-left:350px;
+        display: none;
+        position: fixed;
+        z-index: 1051; /* Ensure it has a higher z-index than Bootstrap modal */
+        left: 0;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        }
+    
+    .unit-modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        z-index: 1052; 
+    }
+    
+    .close-btn {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
 </style>
 <div class="body-wrapper">
     <br><br><br>
@@ -1730,15 +1766,15 @@
 <!-- modal item -->
 
 
-<div class="modal fade" id="newitem">
+<div class="modal fade" id="newitem"  tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header" style="background-color: rgba(144, 211, 117, 0.098);">
                 <h3 class="text-secondary ms-3">ADD ITEM</h3>
-                <button type="button" class="btn-close me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close me-3" aria-label="Close"></button> <!-- Remove data-bs-dismiss="modal" here -->
             </div>
             <div class="modal-body" style="background-color: rgba(144, 211, 117, 0.098);" >
-                <form action="{% url 'add_item' %}" method="post" id="itemform">
+                <form method="post" class="needs-validation" novalidate autocomplete="off" id="modalItem">
                     {% csrf_token %}
                     <div class="bg-light bs p-4 rounded mb-5">
                         <div id="main_form_div">
@@ -1757,7 +1793,7 @@
                                     <input style="color: black;" class="form-control border-dark fw-bolder" type="number" placeholder="ITEM HSN" id="hsn" name="hsn" onchange="checkhsn(this)" required>
                                     <div class="text-danger m-2" id="warnhsn"></div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <select style="color: black;" class="form-control border-dark bg-light" id="unit" name="unit" required>
                                         <option value="" hidden>Select a unit</option>
                                         <option value="NOS">NOS</option>
@@ -1767,9 +1803,40 @@
                                         <option value="{{ i.unit_name|upper }}">{{ i.unit_name|upper }}</option>
                                         {% endfor %}
                                     </select>
+                                    <div class="row" style="margin-top:-40px;height:30px;width:50px;margin-left:160px;">
+                                        <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" onclick="openUnitModal()"><span class="fa fa-plus"></span></button>                                           </div>
+
+
                                 </div>
+
+
+                                <div id="unitModal" class="unit-modal">
+                                    <div class="unit-modal-content">
+                                        <span class="close-btn" onclick="closeUnitModal()">&times;</span>
+                                        <h1 class="modal-title fs-5">ADD UNIT</h1>
+                                        <form class="mb-0" id="unit_form">
+                                            {% csrf_token %}
+                                            <div class="mb-3">
+                                                <label for="item_unit_name_id" class="col-form-label">UNIT</label>
+                                                <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" required>
+                                            </div>
+                                            <div class="m-0 text-center">
+                                                <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example: PCS/BOX/LITER</label>
+                                            </div>
+                                            <input hidden id="submit_unit_creation" type="submit"> 
+                                        </form>
+                                        <div class="modal-footer d-flex justify-content-center mt-1">
+                                            <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" onclick="closeUnitModal()">Close</button>
+                                            <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
+                                        </div>
+                                    </div>
+                                </div>
+                               
+
                             </div>
+
                             <div>
+                                
                                 <p></p>
                                 <hr class="p-0 m-0">
                                 <div style="background-color: rgba(0, 195, 255, 0.205);" class="p-3 pb-0 mb-0">
@@ -1884,6 +1951,67 @@
 </div>
 
 <!-- end modal -->
+
+
+<script>
+    function submit_unit_creation_fn() {
+        // Get the unit name from the input field
+        var unitName = $("#item_unit_name_id").val();
+    
+        // Perform validation if needed
+    
+        // Call the AJAX function to submit the unit creation form
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'item_unit_create_salesorder' %}",
+            data: {
+                item_unit_name: unitName,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                // Log the response for debugging
+                console.log(response);
+                // Check if the response contains a success message
+                if (response.message) {
+                    // Display a success message
+                    alert(response.message);
+                    // Update the unit dropdown
+                    updateUnitDropdown(response.unit_name);
+                    // Clear the input field for unit name
+                    $("#item_unit_name_id").val('');
+                    // Do not close the unit modal
+                    // Display the newItem modal
+                    closeUnitModal()
+                } else {
+                    // Handle the case where there's no success message in the response
+                    alert('Unit not saved. Please try again.');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Handle error response
+                console.error(xhr.responseText);
+                alert('Error: ' + xhr.responseText);
+            }
+        });
+    }
+
+    // Placeholder function for updating the unit dropdown
+    function updateUnitDropdown(unitName) {
+        // You need to implement this function to update the dropdown with the new unit
+        // Example:
+        $("#unit").append('<option value="' + unitName + '">' + unitName + '</option>');
+    }
+</script>
+<script>
+    function openUnitModal() {
+        document.getElementById('unitModal').style.display = 'block';
+    }
+    
+    function closeUnitModal() {
+        document.getElementById('unitModal').style.display = 'none';
+    }
+</script>
+
 <script>
     $(document).ready(function () {
         $("#itemform").on("submit", function (e) {
