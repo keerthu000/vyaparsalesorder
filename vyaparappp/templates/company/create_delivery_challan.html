@@ -120,6 +120,51 @@
         color: #007bff;
     }
 
+    .unit-modal {
+        margin-left:350px;
+        display: none;
+        position: fixed;
+        z-index: 1051; /* Ensure it has a higher z-index than Bootstrap modal */
+        left: 0;
+        top: 40px;
+        width: 50%;
+        height: 70%;
+        overflow: hidden;
+        background-color:white;
+       
+        
+        }
+   
+
+        
+    
+    .unit-modal-content {
+         #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        width: 80%;
+        z-index: 1052; 
+        background-color:white;
+        
+    }
+    
+    .close-btn {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+
 </style>
 {% comment %} <div class="body-wrapper">
     <div class="container-fluid">
@@ -432,7 +477,7 @@
                     <div class="col-md-4">
                         <label class="col-form-label">State of Supply</label>
                        <select style="color: black;  width: 21.5vw;" class="form-control  bg-light me-2  border-secondary" name="state_supply" id="state_of_supply" >
-                            <option value="">State of supply</option>
+                            <option value="" hidden>State of supply</option>
                             <option value="state">State</option>
                             <option value="other">Other State</option>
 
@@ -497,10 +542,10 @@
                             <td>
                                 <div class="w-100">
                                     <div class="p-0 border-0 bg-none d-flex position-relative" style="display: block;">
-                                        <input type="text" id="item1" value="" name="item[]" class="dropdown-toggle form-control item-display border-info bg-light" onkeyup="filterFunction($(this).attr('id'))"  data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
-                                        <ul class="dropdown-menu w-100 items-available position-absolute" id="menu1"  style="overflow-y: auto; height: 270px;"> 
+                                        <input type="text" id="item1" value="" name="item[]" class="dropdown-toggle form-control product item-display border-info bg-light" onkeyup="filterFunction($(this).attr('id'))"  data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                        <ul class="dropdown-menu w-100 items-available position-absolute  product" id="menu1"  style="overflow-y: auto; height: 270px;"> 
                                         {% for i in items %}
-                                        <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.item_name}}`)">{{i.item_name}}</li>
+                                        <li class="dropdown-item items-options product" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.item_name}}`)">{{i.item_name}}</li>
                                         {% endfor %}
                                         </ul>
                                         <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-bs-target="#newItem" data-bs-toggle="modal"><i class="fa fa-plus"></i></button>
@@ -676,35 +721,7 @@
 </script>
 
 <!-- new unit modal -->
-<div class="modal fade" id="newUnitModal" tabindex="-1" aria-labelledby="newUnitModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="newUnitModalLabel">ADD UNIT</h1>
-          <button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#newItem" aria-label="Close"></button>
-        </div>
-        <div class="modal-body mb-1 pb-1">
-          <!-- <form class="mb-0" action="{% url 'item_unit_create' %}" method="POST"></form> -->
-          <form class="mb-0" id="unit_form">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="recipient-name" class="col-form-label">UNIT</label>
-              <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" required>
-            </div>
-            <div class="m-0 text-center">
-              <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example : PCS/BOX/LITER</label>
-              <!-- <textarea class="form-control" id="message-text"></textarea> -->
-            </div>
-            <input hidden id="submit_unit_creation" type="submit">
-          </form>
-        </div>
-        <div class="modal-footer d-flex justify-content-center mt-1">
-          <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" data-bs-toggle="modal" data-bs-target="#newItem">Close</button>
-          <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
-        </div>
-      </div>
-    </div>
-</div>
+
   <!-- modal end -->
   
 
@@ -749,9 +766,32 @@
                               </select>
                               <!-- <button class="btn bg-warning"><span class="fa fa-plus"></span></button> -->
                               
-                              <button id="modal_closing" type="button" class="btn bg-warning" data-bs-toggle="modal" data-bs-target="#newUnitModal" data-bs-whatever="@mdo"><span class="fa fa-plus"></span></button>
+                              <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" onclick="openUnitModal()"><span class="fa fa-plus"></span></button>
+                              <div id="unitModal" class="unit-modal">
+                                <div class="unit-modal-content">
+                                    <span class="close-btn" onclick="closeUnitModal()">&times;</span>
+                                    <h1 class="modal-title fs-5">ADD UNIT</h1>
+                                    <form class="mb-0" id="unit_form">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="item_unit_name_id" class="col-form-label">UNIT</label>
+                                            <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" >
+                                        </div>
+                                        <div class="m-0 text-center">
+                                            <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example: PCS/BOX/LITER</label>
+                                        </div>
+                                        <input hidden id="submit_unit_creation" type="submit"> 
+                                    </form>
+                                    <div class="modal-footer d-flex justify-content-center mt-1">
+                                        <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" onclick="closeUnitModal()">Close</button>
+                                        <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
+                                    </div>
+                                </div>
+                              </div>
+                           
                               
                             </div>
+                           
                           
                             <div>
                                 <p></p>
@@ -1051,7 +1091,64 @@
   </div>
 
 
+  <script>
+    function submit_unit_creation_fn() {
+        // Get the unit name from the input field
+        var unitName = $("#item_unit_name_id").val();
+    
+        // Perform validation if needed
+    
+        // Call the AJAX function to submit the unit creation form
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'item_unit_create_deliverychallan' %}",
+            data: {
+                item_unit_name: unitName,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                // Log the response for debugging
+                console.log(response);
+                // Check if the response contains a success message
+                if (response.message) {
+                    // Display a success message
+                    alert(response.message);
+                    // Update the unit dropdown
+                    updateUnitDropdown(response.unit_name);
+                    // Clear the input field for unit name
+                    $("#item_unit_name_id").val('');
+                    // Do not close the unit modal
+                    // Display the newItem modal
+                    closeUnitModal()
+                } else {
+                    // Handle the case where there's no success message in the response
+                    alert('Unit not saved. Please try again.');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Handle error response
+                console.error(xhr.responseText);
+                alert('Error: ' + xhr.responseText);
+            }
+        });
+    }
 
+    // Placeholder function for updating the unit dropdown
+    function updateUnitDropdown(unitName) {
+        // You need to implement this function to update the dropdown with the new unit
+        // Example:
+        $("#item_unit_value").append('<option value="' + unitName + '">' + unitName + '</option>');
+    }
+</script>
+<script>
+    function openUnitModal() {
+        document.getElementById('unitModal').style.display = 'block';
+    }
+    
+    function closeUnitModal() {
+        document.getElementById('unitModal').style.display = 'none';
+    }
+</script>
 
 
 <script>
@@ -1232,7 +1329,7 @@
     $(document).on("click", "#saveParty", function(){
         $.ajax({
             type : 'POST',
-            url:"{% url 'addNewParty' %}",
+            url: "{% url 'addNewParty' %}",
             data:{
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 partyname : $('#partyname').val(),
@@ -1250,19 +1347,20 @@
                 additionalfield1 : $('#additionalfield1').val(),
                 additionalfield2 : $('#additionalfield2').val(),
                 additionalfield3 : $('#additionalfield3').val(),
-                
             },
-            
             success: function(response) {
-                console.log("success")
-                document.getElementById("newPartyForm").reset();
-                // $('#newParty').modal('toggle');
-                reloadParties();
+                if (response.status) {
+                    console.log("success")
+                    document.getElementById("newPartyForm").reset();
+                    // $('#newParty').modal('toggle');
+                    reloadParties();
+                } else {
+                    alert(response.message); // Display the error message
+                }
             },
         });        
     });
-
-
+    
     function reloadParties() {
 
         $.ajax({
@@ -1334,6 +1432,7 @@
                     }
                     document.getElementById('dcitem' + n).value = response.id;
                     refreshTax();
+                    calc()
     
                     // Display notification
                     var quantityAdded = $('#qty' + n).val();
@@ -1341,6 +1440,7 @@
                     var notificationMessage = "Please add the quantity for the selected product.";
                     alert(notificationMessage); // You can replace this with your preferred notification method
                 }
+                
             },
     
         });
@@ -1355,8 +1455,9 @@
         
         calc();
     });
-
-
+   ;
+    
+    
     $(document).on('click','.clone_row',function(){
         var roinc = $("#dc-items-table-body tr").length;
         var originalRow = $(this).closest('#dc-items-table-body tr'); 
@@ -1397,9 +1498,9 @@
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none d-flex position-relative" style="display: block;">
                                 <input type="text" id="item${roinc}" value="" name="item[]" class="dropdown-toggle form-control item-display border-info bg-light" onkeyup="filterFunction($(this).attr('id'))"  data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
-                                <ul class="dropdown-menu w-100 items-available position-absolute" id="menu${roinc}"  style="overflow-y: auto; height: 270px;"> 
+                                <ul class="dropdown-menu w-100 items-available product position-absolute" id="menu${roinc}"  style="overflow-y: auto; height: 270px;"> 
                                 {% for i in items %}
-                                <li class="dropdown-item items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.item_name}}</li>
+                                <li class="dropdown-item product items-options" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.item_name}}</li>
                                 {% endfor %}
                                 </ul>
                                 <button type="button" class="btn  btn-sm btn-outline-secondary ms-1" data-bs-target="#newItem" data-bs-toggle="modal"><i class="fa fa-plus"></i></button>
@@ -1517,7 +1618,12 @@
         // Recalculate total when adjustment value changes
         calc_total();
     });
-
+    $('.product').change(function() {
+        calc_total();
+    });
+    $('.product').change(function() {
+        calc();
+    });
     function toggleSection(sectionId) {
         // Get all the fieldsets
         const fieldsets = document.querySelectorAll('fieldset');
@@ -1600,33 +1706,7 @@
         }
     });
 
-    $(document).on("submit","#unit_form",function(e){
-        e.preventDefault();
-        $.ajax({
-            
-            type : 'POST',
-            url:"{% url 'item_unit_create' %}",
-
-            data:{
-            item_unit_name : $("#item_unit_name_id").val(),
-                
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-                
-            },
-            
-            success: function() {
-                
-            },
-            
-        });  
-        $('#modal_cls_btn').click()
-        var a = ''+$('#item_unit_name_id').val()
-        a.toUpperCase()
-        $('#load_new_unit').val(a)
-        $('#load_new_unit').text(a) 
-        $('#load_new_unit').prop('selected',true) 
-        $('#load_new_unit').attr('hidden',false)
-    });
+   
 
     $(document).on("click", "#saveItem", function(){
         $.ajax({
@@ -1787,10 +1867,7 @@
       $('#taxable_result').val('Non Taxable')
     })
   })
-  function submit_unit_creation_fn()
-  {
-    $('#submit_unit_creation').click()
-  }
+  
   // set today start
   $(document).ready(function(){
         var currentDate = new Date();

@@ -153,7 +153,7 @@
 </div>
 
                 <div style="background-color: rgba(176, 199, 205, 0.4);">
-                    
+                    <div id="error_message" style="color: red;"></div>
                     <form method="POST" action="{% url 'create_saleorder' %}" class="p-5"  enctype="multipart/form-data" novalidate
                         id="forms">
                         {% csrf_token %}
@@ -307,7 +307,7 @@
                                         <label class="col-form-label">State of Supply</label>
                                        <select style="color: black;  width: 21.5vw;" class="form-control  bg-light me-2  border-secondary  stateofsply" id="stateofsply"
                                        name="stateofsply">
-                                            <option value="">State of supply</option>
+                                            <option value="" hidden>State of supply</option>
                                             <option value="State">State</option>
                                             <option value="Other State">Other State</option>
 
@@ -1617,10 +1617,12 @@
                                                     </div>
 
                                                     <div class="text-start mt-5">
+
+                                                        <button id="creditprev" class="btn btn-primary bg-gradient"
+                                                        type="button">PREVIOUS</button>
                                                         <button id="creditnxt" class="btn btn-primary bg-gradient me-3"
                                                             type="button">NEXT</button>
-                                                        <button id="creditprev" class="btn btn-primary bg-gradient"
-                                                            type="button">PREVIOUS</button>
+                                                      
                                                     </div>
                                                 </div>
                                             </div>
@@ -1677,6 +1679,9 @@
 
     </div>
 </div>
+
+
+
 <script>
     $(document).ready(function () {
         $('#gsthead').css({ 'border-bottom': '3px solid rgba(0, 0, 0, 0.548)' })
@@ -1746,34 +1751,37 @@
 <script>
     $(document).ready(function () {
         $("#forms").on("submit", function (e) {
-            console.log("submit")
             e.preventDefault(); // Prevent the default form submission
 
             $.ajax({
                 type: "POST",
-                url: $(this).attr("action"), // Get the URL from the form's action attribute
-                data: $(this).serialize(), // Serialize the form data
+                url: $(this).attr("action"),
+                data: $(this).serialize(),
 
                 success: function (data) {
                     console.log(data);
                     document.getElementById("forms").reset();
-                    console.log("reset")
-                    // reloadCustomer();
+                    console.log("reset");
 
-                    var selectize = $('#party')[0].selectize;
-                    selectize.clearOptions(); // Clear existing options
+                    if (data.status === false) {
+                        // Display error message in HTML
+                        $("#error_message").text(data.message);
+                    } else {
+                        var selectize = $('#party')[0].selectize;
+                        selectize.clearOptions(); // Clear existing options
 
-                    // Add the default empty option
-                    selectize.addOption({ value: '', text: 'Select Party' });
+                        // Add the default empty option
+                        selectize.addOption({ value: '', text: 'Select Party' });
 
-                    // Add new options
-                    $.each(data, function (key, value) {
-                        selectize.addOption({ value: key, text: value[0] });
-                    });
+                        // Add new options
+                        $.each(data, function (key, value) {
+                            selectize.addOption({ value: key, text: value[0] });
+                        });
 
-                    // Refresh the Selectize dropdown to reflect the changes
-                    selectize.refreshOptions(false);
-                    $("#exampleModal").modal("hide");
+                        // Refresh the Selectize dropdown to reflect the changes
+                        selectize.refreshOptions(false);
+                        $("#exampleModal").modal("hide");
+                    }
                 },
                 error: function (xhr, textStatus, errorThrown) {
                     console.error("Error:", textStatus, errorThrown);
@@ -1782,6 +1790,8 @@
         });
     });
 </script>
+
+
 
 <!-- modal item -->
 
@@ -1814,7 +1824,8 @@
                                 <input style="color: black;" class="form-control border-dark fw-bolder" type="text"
                                     placeholder="ITEM NAME" autocomplete="off" name="item_name" required>
                                 <input style="color: black;" class="form-control border-dark ms-2 fw-bolder"
-                                    type="number" placeholder="ITEM HSN" name="item_hsn" required>
+                                    type="number" placeholder="ITEM HSN" name="item_hsn"  onchange="checkhsn(this)" required>
+                                <div class="text-danger m-2" id="warnhsn"></div>
                                 <select style="color: black;" class="form-control ms-2 border-dark bg-light me-2" id="unit"
                                     name="item_unit" required>
                                     <option value="">Select a unit</option>
@@ -1830,7 +1841,8 @@
                                 </select>
                                 <!-- <button class="btn bg-warning"><span class="fa fa-plus"></span></button> -->
 
-                                <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" onclick="openUnitModal()"><span class="fa fa-plus"></span></button>                                           </div>
+                                <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" onclick="openUnitModal()"><span class="fa fa-plus"></span></button>        
+                               
 
 
                             </div>
@@ -2028,6 +2040,33 @@
 
 <!-- end modal -->
 <script>
+    function updateProductDropdown() {
+        $.ajax({
+            url: "{% url 'item_saleorderdropdown' %}",
+            type: "GET",
+            dataType: "json",
+            data: $(this).serialize(),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+
+            success: function(data) {
+                id_list = data.id_list
+                product_list = data.product_list
+                var table = document.getElementById('tab_logic');
+                var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+                for (var i = 1; i <= rows.length; i++) {
+                    var $select = $(document.getElementById('product'+i));
+                    var selectize = $select[0].selectize;
+                    for(let i=0; i<id_list.length;i++){
+                        selectize.addOption({value:id_list[i],text:product_list[i]});
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+        
+    }
     $(document).ready(function() {
         $('#itemform').submit(function(event) {
             event.preventDefault(); // Prevent default form submission
@@ -2053,33 +2092,7 @@
         });
 
         // Function to update the product dropdown options
-        function updateProductDropdown() {
-            $.ajax({
-                url: "{% url 'item_saleorderdropdown' %}",
-                type: "GET",
-                dataType: "json",
-                data: $(this).serialize(),
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-    
-                success: function(data) {
-                    id_list = data.id_list
-                    product_list = data.product_list
-                    var table = document.getElementById('tab_logic');
-                    var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-                    for (var i = 1; i <= rows.length; i++) {
-                        var $select = $(document.getElementById('product'+i));
-                        var selectize = $select[0].selectize;
-                        for(let i=0; i<id_list.length;i++){
-                            selectize.addOption({value:id_list[i],text:product_list[i]});
-                        }
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error(xhr.responseText);
-                }
-            });
-            
-        }
+       
     });
 </script>
 
@@ -2396,7 +2409,10 @@
 
 
             );
+
             productsearch(roinc)
+            updateProductDropdown()
+            
         });
         $(document).on('click', '.remove_row', function () {
             var row_id = $(this).attr("id");

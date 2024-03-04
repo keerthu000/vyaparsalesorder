@@ -52,11 +52,9 @@
         width: 50%;
         height: 70%;
         overflow: hidden;
-        background-color:lightblue;
        
-        border: 1px solid #888;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+       
+        
         }
    
 
@@ -179,7 +177,7 @@
                         <label class="col-form-label">State of supply</label>
                     <select style="color: black;  width: 21.5vw;" class="form-control  bg-light me-2  border-secondary" id="stateOfSupply"
                         name="state_of_supply">
-                        <option value="">State of supply</option>
+                        <option value="" hidden>State of supply</option>
                         <option value="state">State</option>
                         <option value="other_state">Other State</option>
 
@@ -657,7 +655,7 @@
                                     </select>
                                     <div class="row" style="margin-top:-40px;height:30px;width:50px;margin-left:160px;">
                                         <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" onclick="openUnitModal()"><span class="fa fa-plus"></span></button>                                           </div>
-
+                                    </div>
 
                                 </div>
 
