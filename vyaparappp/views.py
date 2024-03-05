@@ -4310,43 +4310,61 @@ def viewChallan(request, id):
       return redirect(delivery_challan)
     
 
+
+
+    
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+
 def addNewParty(request):
-  if 'staff_id' in request.session:
-    if request.session.has_key('staff_id'):
-      staff_id = request.session['staff_id']
+    if 'staff_id' in request.session:
+        staff_id = request.session['staff_id']
+        staff = staff_details.objects.get(id=staff_id)
+        if request.method == 'POST':
+            Company = company.objects.get(id=staff.company.id)
+            user_id = request.user.id
             
+            party_name = request.POST['partyname']
+            gst_no = request.POST['gstno']
+            contact = request.POST['contact']
+            gst_type = request.POST['gst']
+            state = request.POST['state']
+            address = request.POST['address']
+            email = request.POST['email']
+            openingbalance = request.POST.get('balance', '')
+            payment = request.POST.get('paymentType', '')
+            creditlimit = request.POST.get('creditlimit', '')
+            current_date = request.POST['currentdate']
+            End_date = request.POST.get('enddate', None)
+            additionalfield1 = request.POST['additionalfield1']
+            additionalfield2 = request.POST['additionalfield2']
+            additionalfield3 = request.POST['additionalfield3']
+            comp = Company
+
+            try:
+                existing_party_gst = party.objects.get(gst_no=gst_no)
+                return JsonResponse({'status': False, 'message': 'Party with this GST number already exists.'})
+            except party.DoesNotExist:
+                pass
+
+            try:
+                existing_party_contact = party.objects.get(contact=contact)
+                return JsonResponse({'status': False, 'message': 'Party with this Contact number already exists.'})
+            except party.DoesNotExist:
+                pass
+
+            part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state,
+                         address=address, email=email, openingbalance=openingbalance, payment=payment,
+                         creditlimit=creditlimit, current_date=current_date, End_date=End_date,
+                         additionalfield1=additionalfield1, additionalfield2=additionalfield2,
+                         additionalfield3=additionalfield3, company=comp)
+            part.save()
+
+            return JsonResponse({'status': True, 'message': 'Party added successfully'})
     else:
-      return redirect('/')
-    staff =  staff_details.objects.get(id=staff_id)
+        return JsonResponse({'status': False, 'message': 'Invalid session. Please log in again.'})
 
-    if request.method == 'POST':
-      Company = company.objects.get(id = staff.company.id)
-      user_id = request.user.id
-      
-      party_name = request.POST['partyname']
-      gst_no = request.POST['gstno']
-      contact = request.POST['contact']
-      gst_type = request.POST['gst']
-      state = request.POST['state']
-      address = request.POST['address']
-      email = request.POST['email']
-      openingbalance = request.POST.get('balance', '')
-      payment = request.POST.get('paymentType', '')
-      creditlimit = request.POST.get('creditlimit', '')
-      current_date = request.POST['currentdate']
-      End_date = request.POST.get('enddate', None)
-      additionalfield1 = request.POST['additionalfield1']
-      additionalfield2 = request.POST['additionalfield2']
-      additionalfield3 = request.POST['additionalfield3']
-      comp=Company
-      if (not party_name):
-        return render(request, 'add_parties.html')
-
-      part = party(party_name=party_name, gst_no=gst_no,contact=contact,gst_type=gst_type, state=state,address=address, email=email, openingbalance=openingbalance,payment=payment,
-                      creditlimit=creditlimit,current_date=current_date,End_date=End_date,additionalfield1=additionalfield1,additionalfield2=additionalfield2,additionalfield3=additionalfield3,company=comp)
-      part.save()
-
-      return JsonResponse({'status':True})
 
 
 def addNewItem(request):
@@ -5164,13 +5182,14 @@ def edit_salesinvoice(request,id):
   getinoice=SalesInvoice.objects.get(id=id,company=company_instance)
   getitem=SalesInvoiceItem.objects.filter(salesinvoice=id,company=company_instance)
   Party=party.objects.filter(company=company_instance)
+  item_units = UnitModel.objects.filter(company=company_instance)
   item=ItemModel.objects.filter(company=company_instance)
   bank=BankModel.objects.filter(company=company_instance)
   toda = date.today()
   todate = toda.strftime("%Y-%m-%d")
   allmodules= modules_list.objects.get(company=staff.company.id,status='New')
 
-  return render(request, 'company/edit_salesinvoice.html',{'staff':staff,'getinoice':getinoice,'todate':todate,'getitem':getitem,'Party':Party,'item':item,'bank':bank,'allmodules':allmodules})
+  return render(request, 'company/edit_salesinvoice.html',{'staff':staff,'item_units':item_units,'getinoice':getinoice,'todate':todate,'getitem':getitem,'Party':Party,'item':item,'bank':bank,'allmodules':allmodules})
 
 
 def editsave_salesinvoice(request,id):
@@ -5295,7 +5314,7 @@ def deletesalesinvoice(request,id):
     return redirect('view_salesinvoice')
 
 
-from django.http import JsonResponse
+
 
 from django.db.models import Sum
 
@@ -5385,7 +5404,7 @@ from openpyxl import Workbook
 from django.http import HttpResponse
 
 from openpyxl import load_workbook
-from django.contrib import messages
+
 from django.utils import timezone
 
 
@@ -7009,8 +7028,10 @@ def saleorder_create(request):
       return redirect('/')
   staff =  staff_details.objects.get(id=staff_id)
   allmodules= modules_list.objects.get(company=staff.company,status='New')
+ 
   # cmp = staff.company
   cmp = company.objects.get(id=staff.company.id)
+  item_units = UnitModel.objects.filter(company=cmp)
   par= party.objects.filter(company=staff.company)
   item = ItemModel.objects.filter(company=staff.company)
   bnk = BankModel.objects.filter(company=cmp)
@@ -7023,7 +7044,7 @@ def saleorder_create(request):
     saleorder = 1
   
   context={
-    'party':par,'item':item,'staff':staff,'order':order,'bnk':bnk,'allmodules':allmodules,'saleorder':saleorder
+    'party':par,'item':item,'staff':staff,'order':order,'item_units':item_units,'bnk':bnk,'allmodules':allmodules,'saleorder':saleorder
   }
   return render(request, 'company/saleorder_create.html',context)
 
@@ -7241,100 +7262,121 @@ def import_excel(request):
     return redirect('sale_order')
   
   
+
+
+
+
 def add_party(request):
-  if request.method == 'POST':
-        print("sub===========================")
-        staff_id = request.session['staff_id']
-        staff =  staff_details.objects.get(id=staff_id)
-        
-        party_name = request.POST['partyname']
-        gst_no = request.POST['gstno']
-        contact = request.POST['contact']
-        gst_type = request.POST['gst']
-        state = request.POST['state']
-        address = request.POST['address']
-        email = request.POST['email']
-        openingbalance = request.POST.get('balance', '')
-        payment = request.POST.get('paymentType', '')
-        creditlimit = request.POST.get('creditlimit', '')
-        current_date = request.POST['currentdate']
-        End_date = request.POST.get('enddate', None)
-        additionalfield1 = request.POST['additionalfield1']
-        additionalfield2 = request.POST['additionalfield2']
-        additionalfield3 = request.POST['additionalfield3']
-       
-        if (
-          not party_name
-          
-      ):
-          return render(request, 'add_parties.html')
+    if 'staff_id' in request.session:
+        if request.method == 'POST':
+            staff_id = request.session['staff_id']
+            try:
+                staff = staff_details.objects.get(id=staff_id)
+            except staff_details.DoesNotExist:
+                return JsonResponse({'status': False, 'message': 'Staff details not found.'}, status=400)
 
-        part = party(party_name=party_name, gst_no=gst_no,contact=contact,gst_type=gst_type, state=state,address=address, email=email, openingbalance=openingbalance,payment=payment,
-                       creditlimit=creditlimit,current_date=current_date,End_date=End_date,additionalfield1=additionalfield1,additionalfield2=additionalfield2,additionalfield3=additionalfield3,user=staff.company.user,company=staff.company)
-        part.save()  
-        print("===========saved")
+            Company = company.objects.get(id=staff.company.id)
+            user_id = request.user.id
+            
+            party_name = request.POST['partyname']
+            gst_no = request.POST['gstno']
+            contact = request.POST['contact']
+            gst_type = request.POST['gst']
+            state = request.POST['state']
+            address = request.POST['address']
+            email = request.POST['email']
+            openingbalance = request.POST.get('balance', '')
+            payment = request.POST.get('paymentType', '')
+            creditlimit = request.POST.get('creditlimit', '')
+            current_date = request.POST['currentdate']
+            End_date = request.POST.get('enddate', None)
+            additionalfield1 = request.POST['additionalfield1']
+            additionalfield2 = request.POST['additionalfield2']
+            additionalfield3 = request.POST['additionalfield3']
+            comp = Company
+            
+            try:
+                existing_party_gst = party.objects.filter(gst_no=gst_no)
+                if existing_party_gst.exists():
+                  return JsonResponse({'status': False, 'message': 'Party with this GST number already exists.'})
+            except party.DoesNotExist:
+                pass
 
-        options = {}
-        option_objects = party.objects.filter(company=staff.company)
-        for option in option_objects:
-            options[option.id] = [option.party_name]
-        print("===========get")
-        return JsonResponse(options) 
-  else:
-    return JsonResponse({'error': 'Invalid request'}, status=400)
-  
+            try:
+                existing_party_contact = party.objects.filter(contact=contact)
+                if existing_party_contact.exists():
+                  return JsonResponse({'status': False, 'message': 'Party with this contact number already exists.'})
+            except party.DoesNotExist:
+                pass
+
+            part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address,
+                         email=email, openingbalance=openingbalance, payment=payment, creditlimit=creditlimit,
+                         current_date=current_date, End_date=End_date, additionalfield1=additionalfield1,
+                         additionalfield2=additionalfield2, additionalfield3=additionalfield3, company=comp)
+            part.save()
+
+            return JsonResponse({'status': True})
+    else:
+        return JsonResponse({'status': False, 'message': 'Invalid session. Please log in again.'})
+
+    return render(request, 'saleorder_create.html')  # Render the form template
+
+
+
 def add_item(request):
   if request.method=='POST':
-    staff_id = request.session['staff_id']
-    staff =  staff_details.objects.get(id=staff_id)
-    # user= request.user
-    # user = User.objects.get(id=user.id)
-    # company_user_data = company.objects.get(user=request.user)
-    cmp= staff.company
-    item_name = request.POST.get('item_name')
-    item_hsn = request.POST.get('item_hsn')
-    item_unit = request.POST.get('item_unit')
-    item_taxable = request.POST.get('item_taxable')
-    item_gst = request.POST.get('item_gst')
-    item_igst = request.POST.get('item_igst')
-    item_sale_price = request.POST.get('item_sale_price')
-    item_purchase_price = request.POST.get('item_purchase_price')
-    item_opening_stock = request.POST.get('item_opening_stock')
-    item_current_stock = item_opening_stock
-    if item_opening_stock == '' or None :
-      item_opening_stock = 0
-      item_current_stock = 0
-    item_at_price = request.POST.get('item_at_price')
-    if item_at_price == '' or None:
-      item_at_price =0
-    item_date = request.POST.get('item_date')
-    item_min_stock_maintain = request.POST.get('item_min_stock_maintain')
-    if item_min_stock_maintain == ''  or None:
-      item_min_stock_maintain = 0
-    item_data = ItemModel(user=cmp.user,
-                          company=cmp,
-                          item_name=item_name,
-                          item_hsn=item_hsn,
-                          item_unit=item_unit,
-                          item_taxable=item_taxable,
-                          item_gst=item_gst,
-                          item_igst=item_igst,
-                          item_sale_price=item_sale_price,
-                          item_purchase_price=item_purchase_price,
-                          item_opening_stock=item_opening_stock,
-                          item_current_stock=item_current_stock,
-                          item_at_price=item_at_price,
-                          item_date=item_date,
-                          item_min_stock_maintain=item_min_stock_maintain)
-    item_data.save()
-    options = {}
-    option_objects = ItemModel.objects.filter(company=cmp,user=cmp.user)
-    for option in option_objects:
-      options[option.id] = [option.item_name]
-    return JsonResponse(options) 
+      print('add item')
+      staff_id = request.session['staff_id']
+      staff =  staff_details.objects.get(id=staff_id)
+      cmp= staff.company
+      item_name = request.POST.get('item_name')
+      item_hsn = request.POST.get('item_hsn')
+      item_unit = request.POST.get('item_unit')
+      item_taxable = request.POST.get('item_taxable')
+      item_gst = request.POST.get('item_gst')
+      item_igst = request.POST.get('item_igst')
+      item_sale_price = request.POST.get('item_sale_price')
+      item_purchase_price = request.POST.get('item_purchase_price')
+      item_opening_stock = request.POST.get('item_opening_stock')
+      item_current_stock = item_opening_stock
+      if item_opening_stock == '' or None :
+        item_opening_stock = 0
+        item_current_stock = 0
+      item_at_price = request.POST.get('item_at_price')
+      if item_at_price == '' or None:
+        item_at_price =0
+      item_date = request.POST.get('item_date')
+      item_min_stock_maintain = request.POST.get('item_min_stock_maintain')
+      if item_min_stock_maintain == ''  or None:
+        item_min_stock_maintain = 0
+      item_data = ItemModel(user=cmp.user,
+                            company=cmp,
+                            item_name=item_name,
+                            item_hsn=item_hsn,
+                            item_unit=item_unit,
+                            item_taxable=item_taxable,
+                            item_gst=item_gst,
+                            item_igst=item_igst,
+                            item_sale_price=item_sale_price,
+                            item_purchase_price=item_purchase_price,
+                            item_opening_stock=item_opening_stock,
+                            item_current_stock=item_current_stock,
+                            item_at_price=item_at_price,
+                            item_date=item_date,
+                            item_min_stock_maintain=item_min_stock_maintain)
+      item_data.save()
+     
+      new_item = {
+            'id': item_data.id,
+            'item_name': item_data.item_name
+        }
+      return JsonResponse(new_item)
+      
   else:
     return JsonResponse({'error': 'Invalid request'}, status=400)
   
+
+
 def sales_transaction(request,id):
   if 'staff_id' in request.session:
     if request.session.has_key('staff_id'):
@@ -10997,32 +11039,48 @@ def party_dropdown(request):
     # Return the data as JSON
     return JsonResponse({'id_list': id_list, 'party_list': party_list})
 
+from django.core.exceptions import ObjectDoesNotExist
+
 def saveparty(request):
-  sid = request.session.get('staff_id')
-  staff =  staff_details.objects.get(id=sid)
-  cmp = company.objects.get(id=staff.company.id)
+    sid = request.session.get('staff_id')
+    staff = staff_details.objects.get(id=sid)
+    cmp = company.objects.get(id=staff.company.id)
 
-  party_name = request.POST['name']
-  email = request.POST['email']
-  contact = request.POST['mobile']
-  state = request.POST['splystate']
-  address = request.POST['baddress']
-  gst_type = request.POST['gsttype']
-  gst_no = request.POST['gstin']
-  current_date = request.POST['partydate']
-  openingbalance = request.POST.get('openbalance')
-  payment = request.POST.get('paytype')
-  creditlimit = request.POST.get('credit_limit')
-  End_date = request.POST.get('enddate', None)
-  additionalfield1 = request.POST['add1']
-  additionalfield2 = request.POST['add2']
-  additionalfield3 = request.POST['add3']
+    party_name = request.POST['name']
+    email = request.POST['email']
+    contact = request.POST['mobile']
+    state = request.POST['splystate']
+    address = request.POST['baddress']
+    gst_type = request.POST['gsttype']
+    gst_no = request.POST['gstin']
+    current_date = request.POST['partydate']
+    openingbalance = request.POST.get('openbalance')
+    payment = request.POST.get('paytype')
+    creditlimit = request.POST.get('credit_limit')
+    End_date = request.POST.get('enddate', None)
+    additionalfield1 = request.POST['add1']
+    additionalfield2 = request.POST['add2']
+    additionalfield3 = request.POST['add3']
 
-  part = party(party_name=party_name, gst_no=gst_no,contact=contact,gst_type=gst_type, state=state,address=address, email=email, openingbalance=openingbalance,
-                payment=payment,creditlimit=creditlimit,current_date=current_date,End_date=End_date,additionalfield1=additionalfield1,additionalfield2=additionalfield2,
-                additionalfield3=additionalfield3,company=cmp,user=cmp.user)
-  part.save() 
-  return JsonResponse({'success': True})
+    try:
+        existing_party_gst = party.objects.get(gst_no=gst_no)
+        return JsonResponse({'success': False, 'message': 'Party with this GST number already exists.'})
+    except ObjectDoesNotExist:
+        pass
+    
+    try:
+        existing_party_contact = party.objects.get(contact=contact)
+        return JsonResponse({'success': False, 'message': 'Party with this contact number already exists.'})
+    except ObjectDoesNotExist:
+        pass
+
+    part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address,
+                email=email, openingbalance=openingbalance, payment=payment, creditlimit=creditlimit,
+                current_date=current_date, End_date=End_date, additionalfield1=additionalfield1,
+                additionalfield2=additionalfield2, additionalfield3=additionalfield3, company=cmp, user=cmp.user)
+    part.save()
+    return JsonResponse({'success': True})
+
 
 
 
@@ -12419,4 +12477,236 @@ def item_unit_create_salesinvoice(request):
     unit_data.save()
     return JsonResponse({'message': 'Unit saved successfully.', 'unit_name': item_unit_name})
   return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+
+
+def item_unit_create_salesorder(request):
+  if request.method=='POST':
+    #updated-shemeem
+    sid = request.session.get('staff_id')
+    staff =  staff_details.objects.get(id=sid)
+    cmp = company.objects.get(id=staff.company.id)
+    item_unit_name = request.POST.get('item_unit_name')
+    unit_data = UnitModel(unit_name=item_unit_name,user=cmp.user,company=cmp,)
+    unit_data.save()
+    return JsonResponse({'message': 'Unit saved successfully.', 'unit_name': item_unit_name})
+  return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+
+
+
+
+def item_saleorderdropdown(request):
+  sid = request.session.get('staff_id')
+  staff =  staff_details.objects.get(id=sid)
+  cmp = company.objects.get(id=staff.company.id)
+  product = ItemModel.objects.filter(company=cmp)
+
+  id_list = []
+  product_list = []
+  for p in product:
+    id_list.append(p.id)
+    product_list.append(p.item_name)
+  return JsonResponse({'id_list':id_list, 'product_list':product_list}) 
+
+
+def item_unit_create_deliverychallan(request):
+  if request.method=='POST':
+    #updated-shemeem
+    sid = request.session.get('staff_id')
+    staff =  staff_details.objects.get(id=sid)
+    cmp = company.objects.get(id=staff.company.id)
+    item_unit_name = request.POST.get('item_unit_name')
+    unit_data = UnitModel(unit_name=item_unit_name,user=cmp.user,company=cmp,)
+    unit_data.save()
+    return JsonResponse({'message': 'Unit saved successfully.', 'unit_name': item_unit_name})
+  return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+
+from django.utils import timezone
+from openpyxl import load_workbook
+
+def importsalesorderFromExcel(request):
+    if 'staff_id' in request.session:
+        staff_id = request.session.get('staff_id')
+        if not staff_id:
+            return redirect('/')
+        staff = staff_details.objects.get(id=staff_id)
+        com = company.objects.get(id=staff.company.id)
+
+        current_datetime = timezone.now()
+        dateToday = current_datetime.date()
+
+        if request.method == "POST" and 'excel_file' in request.FILES:
+            excel_file = request.FILES['excel_file']
+
+            try:
+                wb = load_workbook(excel_file)
+            except Exception as e:
+                print(f"Error loading workbook: {e}")
+            # checking challan sheet columns
+            try:
+                ws = wb["salesorder"]
+            except KeyError:
+                print('sheet not found')
+                messages.error(request, '`salesorder` sheet not found.! Please check.')
+                return redirect(delivery_challan)
+
+            try:
+                ws = wb["items"]
+            except KeyError:
+                print('sheet not found')
+                messages.error(request, '`items` sheet not found.! Please check.')
+                return redirect(sale_order)
+
+            ws = wb["challan"]
+            estimate_columns = ['SLNO', 'DATE', 'DUE DATE', 'NAME', 'STATE OF SUPPLY', 'DESCRIPTION', 'SUB TOTAL',
+                                'IGST', 'CGST', 'SGST', 'TAX AMOUNT', 'ADJUSTMENT', 'GRAND TOTAL']
+            estimate_sheet = [cell.value for cell in ws[1]]
+            if estimate_sheet != estimate_columns:
+                print('invalid sheet')
+                messages.error(request,
+                               '`salesorder` sheet column names or order is not in the required formate.! Please check.')
+                return redirect(sale_order)
+
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                slno, date, due_date, name, state_of_supply, description, subtotal, igst, cgst, sgst, taxamount, \
+                adjustment, grandtotal = row
+                if None in [slno, state_of_supply, taxamount, grandtotal]:
+                    print('salesorder == invalid data')
+                    messages.error(request, '`salesorder` sheet entries missing required fields.! Please check.')
+                    return redirect(sale_order)
+
+            # checking items sheet columns
+            ws = wb["items"]
+            items_columns = ['CHALLAN NO', 'NAME', 'HSN', 'QUANTITY', 'PRICE', 'TAX PERCENTAGE', 'DISCOUNT', 'TOTAL']
+            items_sheet = [cell.value for cell in ws[1]]
+            if items_sheet != items_columns:
+                print('invalid sheet')
+                messages.error(request,
+                               '`items` sheet column names or order is not in the required formate.! Please check.')
+                return redirect(sale_order)
+
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                chl_no, name, hsn, quantity, price, tax_percentage, discount, total = row
+                if None in [chl_no, name, quantity, tax_percentage, total]:
+                    print('items == invalid data')
+                    messages.error(request, '`items` sheet entries missing required fields.! Please check.')
+                    return redirect(sale_order)
+
+            # getting data from estimate sheet and create estimate.
+            incorrect_data = []
+            ws = wb['salesorder']
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                slno, date, due_date, name, state_of_supply, description, subtotal, igst, cgst, sgst, taxamount, \
+                adjustment, grandtotal = row
+                dcNo = slno
+                if slno is None:
+                    continue
+
+                # Fetching last bill and assigning upcoming bill no as current + 1
+                latest_bill = salesorder.objects.filter(comp=com).order_by('-id').first()
+                if latest_bill:
+                    last_number = latest_bill.orderno
+                    new_number = last_number + 1
+                else:
+                    new_number = 1
+
+                # Check for deleted bills
+                if salesorder.objects.filter(comp=com).exists():
+                    deleted = salesorder.objects.get(comp=com)
+                    if deleted:
+                        while deleted.orderno >= new_number:
+                            new_number += 1
+
+                if not party.objects.filter(company=com, partyname=name).exists():
+                    incorrect_data.append(slno)
+                    continue
+
+                try:
+                    party_obj = party.objects.get(company=com, partyname=name)
+                    cntct = party_obj.contact
+                    adrs = party_obj.address
+                except party.DoesNotExist:
+                    cntct = None
+                    adrs = None
+
+                if date is None:
+                    date = dateToday
+
+                if due_date is None:
+                    due_date = dateToday
+
+                sales_order = salesorder.objects.create(
+                    party=party_obj,
+                    partyname=name,
+                    staff=staff,
+                    comp=com,
+                    orderno=new_number,
+                    orderdate=date,
+                    duedate=due_date,
+                    address=adrs,
+                    placeofsupply='State' if str(state_of_supply).lower() == 'state' else 'Other State',
+                    subtotal=subtotal,
+                    IGST=igst,
+                    CGST=cgst,
+                    SGST=sgst,
+                    taxamount=taxamount,
+                    adjustment=adjustment,
+                    grandtotal=grandtotal,
+                    status='Open',
+                    action='convert to invoice'
+                )
+
+                # Transaction history
+                history = saleorder_transaction.objects.create(
+                    staff=staff,
+                    sales_order=sales_order,
+                    company=com,
+                    action="Create"
+                )
+
+                # Items for the estimate
+                ws = wb['items']
+                for row in ws.iter_rows(min_row=2, values_only=True):
+                    chl_no, name, hsn, quantity, price, tax_percentage, discount, total = row
+                    if int(chl_no) == int(dcNo):
+                        if sales_order.placeofsupply == 'State' and tax_percentage:
+                            tx = 'GST' + str(tax_percentage) + '[' + str(tax_percentage) + '%]'
+                        elif sales_order.placeofsupply == 'Other State' and tax_percentage:
+                            tx = 'IGST' + str(tax_percentage) + '[' + str(tax_percentage) + '%]'
+                        else:
+                            tx = None
+
+                        if discount is None:
+                            discount = 0
+                        if price is None:
+                            price = 0
+                        if not ItemModel.objects.filter(comp=com, item_name=name).exists():
+                            incorrect_data.append(chl_no)
+                            continue
+
+                        itm = ItemModel.objects.get(comp=com, item_name=name)
+
+                        sales_item.objects.create(
+                            staff=staff,
+                            sales_order=sales_order,
+                            comp=com,
+                            item=itm,
+                            name=name,
+                            hsn=hsn,
+                            quantity=int(quantity),
+                            price=float(price),
+                            tax=tx,
+                            discount=float(discount),
+                            total=float(total)
+                        )
+
+            messages.success(request, 'Data imported successfully.!')
+            if incorrect_data:
+                messages.warning(request,
+                                 f'Data with following SlNo could not import due to incorrect data provided - {", ".join(str(item) for item in incorrect_data)}')
+            return redirect(sale_order)
+
+
    

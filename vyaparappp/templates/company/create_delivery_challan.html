@@ -390,6 +390,7 @@
     </div>
 </div>  {% endcomment %}
 <div style="background-color: rgba(176, 199, 205, 0.4);">
+    
                     
     <form method="POST" action="{% url 'createNewDeliveryChallan' %}" class="p-5"  enctype="multipart/form-data" novalidate
         id="form">
@@ -406,8 +407,13 @@
                 <div class="col-md-3">
                     <a class="text-dark" style="font-size: 1.5rem;"><span>NEW DELIVERY CHALLAN</span></a>
                 </div>
-                
-                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
                 <div class="row">
                 <div class="col-md-4">
                 <label class="col-form-label">Party</label>
@@ -1327,10 +1333,13 @@
     }
 
     $(document).on("click", "#saveParty", function(){
+        
+
         $.ajax({
             type : 'POST',
             url: "{% url 'addNewParty' %}",
             data:{
+                
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 partyname : $('#partyname').val(),
                 gstno : $('#gstno').val(),
@@ -1347,6 +1356,7 @@
                 additionalfield1 : $('#additionalfield1').val(),
                 additionalfield2 : $('#additionalfield2').val(),
                 additionalfield3 : $('#additionalfield3').val(),
+                
             },
             success: function(response) {
                 if (response.status) {
