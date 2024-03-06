@@ -427,7 +427,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="background-color: rgba(144, 211, 117, 0.098);">
-                <form method="POST" action="{% url 'salesinvoice_save_parties' %}" class="p-5" enctype="multipart/form-data" novalidate id="forms">
+                <form method="POST" action="{% url 'salesinvoice_save_parties' %}" class="p-5" enctype="multipart/form-data" novalidate id="partyforms">
                     {% csrf_token %}
                     <div class="bg-light bs p-4 rounded mb-5">
                         <div id="main_form_div">
@@ -572,8 +572,9 @@
                                             </div>
 
                                             <div class="text-start mt-5">
-                                                <button id="creditnxt" class="btn btn-primary bg-gradient me-3" type="button">NEXT</button>
                                                 <button id="creditprev" class="btn btn-primary bg-gradient" type="button">PREVIOUS</button>
+                                                <button id="creditnxt" class="btn btn-primary bg-gradient me-3" type="button">NEXT</button>
+                                                
                                             </div>
                                         </div>
                                     </div>
@@ -1642,4 +1643,4 @@ $(document).on("input", "#advance", function(){
  </script>
 
 
-{% endblock %}
+{% endblock %}  
