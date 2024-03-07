@@ -4413,6 +4413,13 @@ def addNewItem(request):
         item_min_stock_maintain=item_min_stock_maintain
       )
       item_data.save()
+      if ItemModel.objects.filter(item_name=item_name, company=com).exists():
+        return JsonResponse({'success': False, 'message': 'Item already exists.'})
+
+    # Check if the HSN number exists
+      if ItemModel.objects.filter(item_hsn=item_hsn, company=com).exists():
+        return JsonResponse({'success': False, 'message': 'HSN number already exists.'})
+      
 
       return JsonResponse({'status':True})
     
@@ -5258,27 +5265,18 @@ def salesinvoice_save_parties(request):
         if 'staff_id' in request.session:
             staff_id = request.session['staff_id']
         else:
-            return redirect('/')
+            return JsonResponse({'status': False, 'message': 'Invalid session. Please log in again.'}, status=400)
 
-        staff = staff_details.objects.get(id=staff_id)
+        try:
+            staff = staff_details.objects.get(id=staff_id)
+        except staff_details.DoesNotExist:
+            return JsonResponse({'status': False, 'message': 'Staff details not found.'}, status=400)
+
         company_instance = staff.company 
 
         party_name = request.POST['partyname']
         gst_no = request.POST['gstin']
         contact = request.POST['partyphno']
-
-        # Check if the GST number or contact number is already registered
-        if party.objects.filter(gst_no=gst_no, company=company_instance).exists():
-          
-          response = {'status': False, 'message': 'GST number of Party is already registered.'}
-            # If GST number is already registered, do not save and return
-           
-        if party.objects.filter(contact=contact, company=company_instance).exists():
-          response={'status': False, 'message': 'Contact number of Party is already registered.'}
-          return JsonResponse(response)
-            # If contact number is already registered, do not save and return
-           
-
         gst_type = request.POST['modalgsttype']
         state = request.POST['splystate']
         address = request.POST['baddress']
@@ -5292,17 +5290,32 @@ def salesinvoice_save_parties(request):
         additionalfield3 = request.POST['additional3']
         comp = company_instance
 
-        if not party_name:
-            return render(request, 'add_salesinvoice.html')
+        # Check if the GST number or contact number is already registered
+        if party.objects.filter(Q(gst_no=gst_no) | Q(contact=contact), company=company_instance).exists():
+            return JsonResponse({'status': False, 'message': 'GST number or Contact number of Party is already registered.'}, status=400)
 
         part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address, email=email,
                      openingbalance=openingbalance, payment=payment, creditlimit=creditlimit, current_date=current_date,
                      additionalfield1=additionalfield1, additionalfield2=additionalfield2, additionalfield3=additionalfield3, company=comp)
         part.save() 
 
-        return redirect('add_salesinvoice')
+        return JsonResponse({'status': True})
+    else:
+        return JsonResponse({'status': False, 'message': 'Invalid request method.'}, status=400)
 
-    return render(request, 'company/add_salesinvoice.html')
+
+
+
+def get_party_list(request):
+    if request.method == 'GET':
+        # Assuming the user is authenticated and has staff details associated
+        company_instance = request.user.staff.company
+        parties = party.objects.filter(company=company_instance).values_list('party_name', flat=True)
+        party_list = list(parties)
+        return JsonResponse({'parties': party_list})
+    else:
+        return JsonResponse({'status': False, 'message': 'Invalid request method.'}, status=400)
+
 
 
 
@@ -7682,19 +7695,23 @@ def item_save_invoice(request):
     if not hsn:
         hsn = None
 
-    # Check if the item name already exists
-    if ItemModel.objects.filter(item_name=name, company=cmp).exists():
-        return JsonResponse({'success': False, 'message': 'Item with this name already exists.'})
-
     # Check if the HSN already exists
-    if hsn and ItemModel.objects.filter(item_hsn=hsn, company=cmp).exists():
+    if ItemModel.objects.filter(item_name=name, company=cmp).exists():
+        return JsonResponse({'success': False, 'message': 'Item already exists.'})
+
+    # Check if the HSN number exists
+    if ItemModel.objects.filter(item_hsn=hsn, company=cmp).exists():
         return JsonResponse({'success': False, 'message': 'HSN number already exists.'})
+
+    # If neither item name nor HSN number exists, return success
+    #return JsonResponse({'success': True, 'message': 'Item and HSN number are available.'})
 
     itm = ItemModel(item_name=name, item_hsn=hsn, item_unit=unit, item_taxable=taxref, item_gst=intra_st, item_igst=inter_st, 
                     item_sale_price=sell_price, item_purchase_price=cost_price, item_opening_stock=stock, item_current_stock=stock,
                     item_at_price=itmprice, item_date=itmdate, item_min_stock_maintain=minstock, company=cmp, user=cmp.user)
     itm.save() 
 
+    
     return JsonResponse({'success': True})
 
 
@@ -11521,7 +11538,7 @@ def email_saleorder(request,id):
     staff =  staff_details.objects.get(id=sid)
     cmp = company.objects.get(id=staff.company.id) 
     sale = salesorder.objects.get(id=id,staff=staff)
-    vetem= sales_item.objects.filter(sale_order=sale.id)
+    saleitem= sales_item.objects.filter(sale_order=sale.id)
     context = {'sale':sale, 'cmp':cmp,'saleitem':saleitem}
     template_path = 'company/saleorder_file_mail.html'
     

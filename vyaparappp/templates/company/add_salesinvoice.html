@@ -96,7 +96,7 @@
     <form method="POST" action="{% url 'save_sales_invoice' %}" class="p-5" enctype="multipart/form-data" novalidate
         id="forms">
         {% csrf_token %}
-
+        <div id="error-message"></div>
         
         <div class="body-wrapper">
             <div class="d-flex justify-content-end">
@@ -230,7 +230,7 @@
                                 <tr>
                                     <th class="text-right">#</th>
                                     <th>Item</th>
-                                    <th class="text-right">Hsn</th>
+                                    <th class="text-right">HSN</th>
                                     <th class="text-right">Qty</th>
                                     <th class="text-right">Price</th>
                                     <th class="text-right">Tax</th>
@@ -802,9 +802,63 @@
 </div>
 
 
-
-
-
+<script>
+    $(document).ready(function() {
+        function updatePartyDropdown() {
+            // AJAX request to fetch the party list
+            $.ajax({
+                url: "{% url 'get_party_list' %}",
+                type: 'GET',
+                success: function(response) {
+                    $('#partySelect').empty();  // Clear existing options
+                    // Check if response contains parties array
+                    if (response.parties && Array.isArray(response.parties)) {
+                        response.parties.forEach(function(party_name) {
+                            $('#partySelect').append($('<option>', {
+                                value: party_name,
+                                text: party_name
+                            }));
+                        });
+                    } else {
+                        console.error('Invalid response format: parties array not found');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+    
+        $('#partyforms').submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            var formData = $(this).serialize(); // Serialize form data
+            
+            $.ajax({
+                url: "{% url 'salesinvoice_save_parties' %}",
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.status) {
+                        alert('Party added successfully!');
+                       
+                        $('#customercreation').modal('hide');
+                        updatePartyDropdown();
+                    } else {
+                        $('#error-message').text('Failed to add party: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request.');
+                }
+            });
+        });
+    
+        updatePartyDropdown();
+    });
+    
+</script>
 <script>
     function submit_unit_creation_fn() {
         // Get the unit name from the input field
@@ -1643,4 +1697,4 @@ $(document).on("input", "#advance", function(){
  </script>
 
 
-{% endblock %}  
+{% endblock %}

@@ -119,7 +119,49 @@
         background-color: #fff;
         color: #007bff;
     }
+    .unit-modal {
+        margin-left:350px;
+        display: none;
+        position: fixed;
+        z-index: 1051; /* Ensure it has a higher z-index than Bootstrap modal */
+        left: 0;
+        top: 40px;
+        width: 50%;
+        height: 70%;
+        overflow: hidden;
+        background-color:white;
+       
+        
+        }
+   
 
+        
+    
+    .unit-modal-content {
+         #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        width: 80%;
+        z-index: 1052; 
+        background-color:white;
+        
+    }
+    
+    .close-btn {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
 </style>
 <div class="body-wrapper">
     <div class="container-fluid">
@@ -637,36 +679,7 @@
         </div>
 
 <!-- new unit modal -->
-<div class="modal fade" id="newUnitModal" tabindex="-1" aria-labelledby="newUnitModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="newUnitModalLabel">ADD UNIT</h1>
-          <button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#newItem" aria-label="Close"></button>
-        </div>
-        <div class="modal-body mb-1 pb-1">
-          <!-- <form class="mb-0" action="{% url 'item_unit_create' %}" method="POST"></form> -->
-          <form class="mb-0" id="unit_form">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="recipient-name" class="col-form-label">UNIT</label>
-              <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" required>
-            </div>
-            <div class="m-0 text-center">
-              <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example : PCS/BOX/LITER</label>
-              <!-- <textarea class="form-control" id="message-text"></textarea> -->
-            </div>
-            <input hidden id="submit_unit_creation" type="submit">
-          </form>
-        </div>
-        <div class="modal-footer d-flex justify-content-center mt-1">
-          <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" data-bs-toggle="modal" data-bs-target="#newItem">Close</button>
-          <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- modal end -->
+
   
 
 <!-- New Item modal -->
@@ -694,9 +707,9 @@
                         <div id="main_form_div">
                           
                             <div class="d-flex">
-                              <input style="color: black;" class="form-control border-dark fw-bolder" type="text" placeholder="ITEM NAME" autocomplete="off" name="item_name" id="item_name" required>
-                              <input style="color: black;" class="form-control border-dark ms-2 fw-bolder" type="number" placeholder="ITEM HSN" name="item_hsn" id="item_hsn" required>
-                              <select style="color: black;" class="form-control ms-2 border-dark bg-light me-2" id="item_unit_value" name="item_unit" required>
+                              <input style="color: black;" class="form-control border-dark fw-bolder" type="text" placeholder="ITEM NAME" autocomplete="off" name="item_name" id="item_name" >
+                              <input style="color: black;" class="form-control border-dark ms-2 fw-bolder" type="number" placeholder="ITEM HSN" name="item_hsn" id="item_hsn" >
+                              <select style="color: black;" class="form-control ms-2 border-dark bg-light me-2" id="item_unit_value" name="item_unit">
                                 <option value="">Select a unit</option>
                                 <option value="NOS">NOS</option>
                                 <option value="BOX">BOX</option>
@@ -710,8 +723,29 @@
                               </select>
                               <!-- <button class="btn bg-warning"><span class="fa fa-plus"></span></button> -->
                               
-                              <button id="modal_closing" type="button" class="btn bg-warning" data-bs-toggle="modal" data-bs-target="#newUnitModal" data-bs-whatever="@mdo"><span class="fa fa-plus"></span></button>
-                              
+                              <button id="modal_closing_btn" type="button" style="margin-right:5px;" class="btn bg-warning" onclick="openUnitModal()"><span class="fa fa-plus"></span></button>             
+                               
+                            </div>
+                            <div id="unitModal" class="unit-modal">
+                                <div class="unit-modal-content">
+                                    <span class="close-btn" onclick="closeUnitModal()">&times;</span>
+                                    <h1 class="modal-title fs-5">ADD UNIT</h1>
+                                    <form class="mb-0" id="unit_form">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="item_unit_name_id" class="col-form-label">UNIT</label>
+                                            <input type="text" class="form-control border-dark text-uppercase" id="item_unit_name_id" placeholder="ENTER UNIT HERE.." name="item_unit_name" >
+                                        </div>
+                                        <div class="m-0 text-center">
+                                            <label for="message-text" class="col-form-label  text-secondary fw-lighter">Example: PCS/BOX/LITER</label>
+                                        </div>
+                                        <input hidden id="submit_unit_creation" type="submit"> 
+                                    </form>
+                                    <div class="modal-footer d-flex justify-content-center mt-1">
+                                        <button id="modal_cls_btn" type="button" class="btn btn-secondary ps-5 pe-5" onclick="closeUnitModal()">Close</button>
+                                        <button id="add_btn_" type="button" class="btn btn-primary ps-5 pe-5" onclick="submit_unit_creation_fn()">ADD</button>
+                                    </div>
+                                </div>
                             </div>
                           
                             <div>
@@ -741,9 +775,9 @@
                                     <div class="col-sm-12 col-md-10 pb-4">
                                         <div class="text- pt-5">
                                           <label style="user-select: none;" class="fs-4 tb" for="item_tax_1">Taxable</label>
-                                          <input id="item_tax_1" class="me-3" type="radio" name="item_tax_result" required>
+                                          <input id="item_tax_1" class="me-3" type="radio" name="item_tax_result">
                                           <label style="user-select: none;" class="fs-4 tb" for="item_tax_2">Non Taxable</label>
-                                          <input id="item_tax_2" type="radio" name="item_tax_result" required>
+                                          <input id="item_tax_2" type="radio" name="item_tax_result" >
                                           <input id="taxable_result" type="text" name="item_taxable" hidden>
                                         </div>
                                         <br>
@@ -777,11 +811,11 @@
                                         <div class="d-flex">
                                           <div class="w-50 me-3">
                                             <label class="tb fw-bold" for="pur_price">SALES PRICE</label><br>
-                                            <input style="color: black;background-color: white;" id="sal_price" class="form-control fw-normal border-secondary  fs-3" type="number" placeholder="Sales Price here" name="item_sale_price" required>
+                                            <input style="color: black;background-color: white;" id="sal_price" class="form-control fw-normal border-secondary  fs-3" type="number" placeholder="Sales Price here" name="item_sale_price" >
                                           </div>
                                           <div class="w-50">
                                             <label class="tb fw-bold" for="">PURCHASE PRICE</label><br>
-                                            <input style="color: black;background-color: white;" id="pur_price" class="form-control fw-normal border-secondary  fs-3" type="number" placeholder="Purchase Price here" name="item_purchase_price" required>
+                                            <input style="color: black;background-color: white;" id="pur_price" class="form-control fw-normal border-secondary  fs-3" type="number" placeholder="Purchase Price here" name="item_purchase_price" >
                                           </div>
                                         </div>
                                         <div class="text-start mt-5">
@@ -818,7 +852,7 @@
                                         <div class="d-flex">
                                           <div class="w-50 me-3">
                                             <label class="tb fw-bold" for="date_">DATE</label><br>
-                                            <input style="color: black;background-color: white" id="date_" class="form-control fw-normal border-secondary  fs-3" type="date" placeholder=""required name="item_date">
+                                            <input style="color: black;background-color: white" id="date_" class="form-control fw-normal border-secondary  fs-3" type="date" placeholder="" name="item_date">
                                           </div>
                                           <div class="w-50">
                                             <label class="tb fw-bold" for="at_price">MINIMUM STOCK TO MAINTAIN</label><br>
@@ -1010,6 +1044,65 @@
         </div>
     </div>
   </div>
+
+ <script>
+    function submit_unit_creation_fn() {
+        // Get the unit name from the input field
+        var unitName = $("#item_unit_name_id").val();
+    
+        // Perform validation if needed
+    
+        // Call the AJAX function to submit the unit creation form
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'item_unit_create_deliverychallan' %}",
+            data: {
+                item_unit_name: unitName,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                // Log the response for debugging
+                console.log(response);
+                // Check if the response contains a success message
+                if (response.message) {
+                    // Display a success message
+                    alert(response.message);
+                    // Update the unit dropdown
+                    updateUnitDropdown(response.unit_name);
+                    // Clear the input field for unit name
+                    $("#item_unit_name_id").val('');
+                    // Do not close the unit modal
+                    // Display the newItem modal
+                    closeUnitModal()
+                } else {
+                    // Handle the case where there's no success message in the response
+                    alert('Unit not saved. Please try again.');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Handle error response
+                console.error(xhr.responseText);
+                alert('Error: ' + xhr.responseText);
+            }
+        });
+    }
+
+    // Placeholder function for updating the unit dropdown
+    function updateUnitDropdown(unitName) {
+        // You need to implement this function to update the dropdown with the new unit
+        // Example:
+        $("#item_unit_value").append('<option value="' + unitName + '">' + unitName + '</option>');
+    }
+</script> 
+<script>
+    function openUnitModal() {
+        document.getElementById('unitModal').style.display = 'block';
+    }
+    
+    function closeUnitModal() {
+        document.getElementById('unitModal').style.display = 'none';
+    }
+</script>
 
 <script>
     var checkbox1 = document.getElementById('inclusive');
@@ -1241,7 +1334,7 @@
     $(document).on("click", "#saveParty", function(){
         $.ajax({
             type : 'POST',
-            url:"{% url 'addNewParty' %}",
+            url: "{% url 'addNewParty' %}",
             data:{
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 partyname : $('#partyname').val(),
@@ -1259,18 +1352,20 @@
                 additionalfield1 : $('#additionalfield1').val(),
                 additionalfield2 : $('#additionalfield2').val(),
                 additionalfield3 : $('#additionalfield3').val(),
-                
             },
-            
             success: function(response) {
-                console.log("success")
-                document.getElementById("newPartyForm").reset();
-                // $('#newParty').modal('toggle');
-                reloadParties();
+                if (response.success) {
+                
+                document.getElementById("newItemForm").reset();
+                reloadItems();
+                }else {
+                    // Display error message for duplicate HSN number
+                    alert('Error: ' + response.message);
+                }
             },
         });        
     });
-
+    
 
     function reloadParties() {
 
@@ -1343,6 +1438,7 @@
                     }
                     document.getElementById('dcitem' + n).value = response.id;
                     refreshTax();
+                    calc();
     
                     // Display notification
                     var quantityAdded = $('#qty' + n).val();
@@ -1618,33 +1714,7 @@
         }
     });
 
-    $(document).on("submit","#unit_form",function(e){
-        e.preventDefault();
-        $.ajax({
-            
-            type : 'POST',
-            url:"{% url 'item_unit_create' %}",
 
-            data:{
-            item_unit_name : $("#item_unit_name_id").val(),
-                
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-                
-            },
-            
-            success: function() {
-                
-            },
-            
-        });  
-        $('#modal_cls_btn').click()
-        var a = ''+$('#item_unit_name_id').val()
-        a.toUpperCase()
-        $('#load_new_unit').val(a)
-        $('#load_new_unit').text(a) 
-        $('#load_new_unit').prop('selected',true) 
-        $('#load_new_unit').attr('hidden',false)
-    });
 
     $(document).on("click", "#saveItem", function(){
         $.ajax({
@@ -1668,9 +1738,14 @@
             },
             
             success: function(response) {
-                console.log("success")
+                if (response.success) {
+                
                 document.getElementById("newItemForm").reset();
                 reloadItems();
+                }else {
+                    // Display error message for duplicate HSN number
+                    alert('Error: ' + response.message);
+                }
             },
         });        
     });
@@ -1805,10 +1880,7 @@
       $('#taxable_result').val('Non Taxable')
     })
   })
-  function submit_unit_creation_fn()
-  {
-    $('#submit_unit_creation').click()
-  }
+  
   // set today start
   $(document).ready(function(){
         var currentDate = new Date();
