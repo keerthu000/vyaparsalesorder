@@ -126,38 +126,36 @@
                 {% endfor %}
 
                 <div class="row">
-                <div class="col-md-4">
-                <label class="col-form-label">Party</label>
-                <div class="d-flex ">
-                    <select style="color: black;  width: 21.5vw;" class="form-control  me-2 border-secondary"  id="partySelect" name="partyname"  required >
-                        <option value="" selected hidden>Select</option>
-                        {% for i in Party %}
-                            <option value="{{ i.party_name|upper }}">{{ i.party_name|upper }}</option>
-                        {% endfor %}
-                    </select>
-                    
-                    
-                    <button id="modal_closing" type="button" class="btn " style="background-color: lightskyblue;" data-bs-toggle="modal" data-bs-target="#customercreation" data-bs-whatever="@mdo"><span class="fa fa-plus " style="color: #fff;" ></span></button>
-
-                  </div>
-                </div>
-                  <div class="col-md-4">
-                    <div id="partyPhonebox">
-                    <label class="col-form-label">Phone No</label>
-                    <input style="color: black;  width: 21.5vw;" class="form-control  bg-light border-secondary  " type="number"
-                        placeholder="Phone No" autocomplete="off" name="contact" id="partyPhone" readonly >
+                    <div class="col-md-4">
+                        <label class="col-form-label">Party</label>
+                        <div class="d-flex">
+                            <select style="color: black; width: 21.5vw;" class="form-control me-2 border-secondary" id="partySelect" name="partyname" required>
+                                <option value="" selected hidden>Select</option>
+                                {% for party in Party %}
+                                    <option value="{{ party.party_name }}">{{ party.party_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button id="modal_closing" type="button" class="btn" style="background-color: lightskyblue;" data-bs-toggle="modal" data-bs-target="#customercreation" data-bs-whatever="@mdo">
+                                <span class="fa fa-plus" style="color: #fff;"></span>
+                            </button>
+                        </div>
                     </div>
-                </div>
+                    <div class="col-md-4">
+                        <div id="partyPhonebox">
+                            <label class="col-form-label">Phone No</label>
+                            <input style="color: black; width: 21.5vw;" class="form-control bg-light border-secondary" type="tel" placeholder="Phone No" autocomplete="off" name="contact" id="partyPhone" readonly>
+                        </div>
+                    </div>
                     <div class="col-md-4">
                         <div id="partyAddressbox">
-                        <label class="col-form-label">Address</label>
-                    <input style="color: black;  width: 21.5vw;" class="form-control  bg-light  border-secondary" type="text"
-                        placeholder="Address" autocomplete="off" name="address" id="partyAddress" readonly >
+                            <label class="col-form-label">Address</label>
+                            <input style="color: black; width: 21.5vw;" class="form-control bg-light border-secondary" type="text" placeholder="Address" autocomplete="off" name="address" id="partyAddress" readonly>
                         </div>
                     </div>
                 </div>
-
-                <label for="" id="partyBalance">Balance Amount: </label>
+                
+                <label for="partyBalance" id="partyBalance">Balance Amount: </label>
+                
 
                 <div class="row">
                     <div class="col-md-4">
@@ -802,63 +800,114 @@
 </div>
 
 
-<script>
-    $(document).ready(function() {
-        function updatePartyDropdown() {
-            // AJAX request to fetch the party list
-            $.ajax({
-                url: "{% url 'get_party_list' %}",
-                type: 'GET',
-                success: function(response) {
-                    $('#partySelect').empty();  // Clear existing options
-                    // Check if response contains parties array
-                    if (response.parties && Array.isArray(response.parties)) {
-                        response.parties.forEach(function(party_name) {
-                            $('#partySelect').append($('<option>', {
-                                value: party_name,
-                                text: party_name
-                            }));
-                        });
+
+    <script>
+
+    function updatePartyDetails() {
+        // Get the selected party name
+        var selectedParty = $('#partySelect').val();
+
+        var endpoint = '/api/party-details/' + selectedParty; // Update the endpoint accordingly
+
+        // Fetch party details
+        $.ajax({
+            url: endpoint,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                // Update the input fields with the fetched details
+                if (data) {
+                    $('#partyPhone').val(data.contact || '');
+                    $('#partyAddress').val(data.address || '');
+
+                    // Update the opening balance with color based on payment status
+                    var openingBalanceElement = $('#partyBalance');
+                    openingBalanceElement.html('Balance Amount: <span class="amount">' + data.openingbalance + '</span>');
+
+                    // Get the amount element within the partyBalance element
+                    var openingBalanceAmountElement = openingBalanceElement.find('.amount');
+
+                    var paymentStatus = data.payment;
+
+                    if (paymentStatus === 'To Pay') {
+                        openingBalanceAmountElement.css('color', 'red');
+                    } else if (paymentStatus === 'To Receive') {
+                        openingBalanceAmountElement.css('color', 'green');
                     } else {
-                        console.error('Invalid response format: parties array not found');
+                        openingBalanceAmountElement.css('color', 'black');
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error:', error);
                 }
-            });
-        }
-    
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching party details:', error);
+            }
+        });
+    }
+
+    // Document ready function
+     
+
+    $(document).ready(function() {
         $('#partyforms').submit(function(event) {
-            event.preventDefault(); // Prevent default form submission
-            
-            var formData = $(this).serialize(); // Serialize form data
-            
+            event.preventDefault(); // Prevent the default form submission
+    
+            var formData = $(this).serialize(); // Serialize the form data
+    
             $.ajax({
-                url: "{% url 'salesinvoice_save_parties' %}",
-                type: 'POST',
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
                 data: formData,
+                dataType: 'json',
                 success: function(response) {
                     if (response.status) {
-                        alert('Party added successfully!');
-                       
                         $('#customercreation').modal('hide');
-                        updatePartyDropdown();
+                        updatePartyDropdown(); // Call updatePartyDropdown after successful form submission
                     } else {
-                        $('#error-message').text('Failed to add party: ' + response.message);
+                        alert(response.message); // Show the error message returned from the server
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+                    console.error(xhr.responseText);
+                    alert("An error occurred. Please try again later."); // Show a generic error message for unexpected errors
                 }
             });
         });
-    
-        updatePartyDropdown();
     });
+
+
+    function updatePartyDropdown() {
+        $.ajax({
+            url: "{% url 'get_party_list' %}",
+            type: "GET",
+            dataType: "json",
+            data: $(this).serialize(),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            success: function(data) {
+                var $select = $('#partySelect').selectize();
+                var selectize = $select[0].selectize;
+                selectize.clearOptions(); // Clear existing options
+                $.each(data, function(key, value) {
+                    selectize.addOption({ value: value[0], text: value[1] });
+                    selectize.addItem(value[0]);
+                });
+
+                // After updating the dropdown, call updatePartyDetails for the newly added party
+                updatePartyDetails();
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching party list:", error); // Log any errors
+            }
+        });
+       }
     
+    // Call updatePartyDropdown initially
+    updatePartyDropdown();
 </script>
+
+   
+        
+
+
 <script>
     function submit_unit_creation_fn() {
         // Get the unit name from the input field
@@ -959,7 +1008,7 @@
 
 
 
-<script>
+{% comment %} <script>
 
     function updatePartyDetails() {
         // Get the selected party name
@@ -1017,7 +1066,7 @@
     
 
 
-</script>
+</script> {% endcomment %}
 
 
 
