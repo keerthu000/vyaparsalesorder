@@ -132,7 +132,7 @@
                             <select style="color: black; width: 21.5vw;" class="form-control me-2 border-secondary" id="partySelect" name="partyname" required>
                                 <option value="" selected hidden>Select</option>
                                 {% for party in Party %}
-                                    <option value="{{ party.party_name }}">{{ party.party_name }}</option>
+                                    <option value="{{ party.id}}">{{ party.party_name|upper}}</option>
                                 {% endfor %}
                             </select>
                             <button id="modal_closing" type="button" class="btn" style="background-color: lightskyblue;" data-bs-toggle="modal" data-bs-target="#customercreation" data-bs-whatever="@mdo">
@@ -259,7 +259,7 @@
                                     </td>
 
                                     <td >
-                                        <input type="number" name='qty[]' id="qty1"  class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" value=1 />
+                                        <input type="number" name='qty[]' id="qty1"  class="form-control border-secondary qty mb-1" step=0 min=0 style="color: black; background-color: white;" value=0 required />
                                     </td>
                                 
                                     <td >
@@ -801,9 +801,9 @@
 
 
 
-    <script>
+    
 
-    function updatePartyDetails() {
+    {% comment %} function updatePartyDetails() {
         // Get the selected party name
         var selectedParty = $('#partySelect').val();
 
@@ -842,70 +842,138 @@
                 console.error('Error fetching party details:', error);
             }
         });
-    }
+    } {% endcomment %}
 
-    // Document ready function
-     
-
-    $(document).ready(function() {
-        $('#partyforms').submit(function(event) {
-            event.preventDefault(); // Prevent the default form submission
     
-            var formData = $(this).serialize(); // Serialize the form data
-    
-            $.ajax({
-                url: $(this).attr('action'),
-                type: $(this).attr('method'),
-                data: formData,
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status) {
-                        $('#customercreation').modal('hide');
-                        updatePartyDropdown(); // Call updatePartyDropdown after successful form submission
-                    } else {
-                        alert(response.message); // Show the error message returned from the server
+<script>
+    $(document).ready(function () {
+        // Initialize selectize
+        var $select = $('#partySelect').selectize({
+            sortField: 'value',
+            items: [''],
+            render: {
+                item: function (item, escape) {
+                    if (item.value === '') {
+                        return '';
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error(xhr.responseText);
-                    alert("An error occurred. Please try again later."); // Show a generic error message for unexpected errors
+                    return '<div>' + escape(item.text) + '</div>';
                 }
-            });
+            }
         });
+    
+        // Get selectize instance
+        var selectize = $select[0].selectize;
+    
+        // Add change event listener
+        selectize.on('change', function () {
+            getprty();
+        });
+    
+        // Call updatePartyDetails() initially
+        
     });
 
 
-    function updatePartyDropdown() {
-        $.ajax({
-            url: "{% url 'get_party_list' %}",
-            type: "GET",
-            dataType: "json",
-            data: $(this).serialize(),
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-            success: function(data) {
-                var $select = $('#partySelect').selectize();
-                var selectize = $select[0].selectize;
-                selectize.clearOptions(); // Clear existing options
-                $.each(data, function(key, value) {
-                    selectize.addOption({ value: value[0], text: value[1] });
-                    selectize.addItem(value[0]);
-                });
-
-                // After updating the dropdown, call updatePartyDetails for the newly added party
-                updatePartyDetails();
-            },
-            error: function(xhr, status, error) {
-                console.error("Error fetching party list:", error); // Log any errors
-            }
-        });
-       }
     
-    // Call updatePartyDropdown initially
-    updatePartyDropdown();
 </script>
 
-   
+    <script>
+        function getprty() {
+            var party = $('#partySelect').val();
+            console.log(party)
+            $.ajax({
+                type: "GET",
+                url: "{% url 'getparty_salesinvoice' %}",
+                data: {
+                    id: party
+                },
+                success: function (data) {
+                    console.log(data.phone); // Corrected: Access data.phone instead of response.phone
+                    // Update the input fields with the fetched details
+                    document.getElementById('partyPhone').value = data.phone;
+                    document.getElementById('partyAddress').value = data.address;
+    
+                    // Update the opening balance with color based on payment status
+                    var openingBalanceElement = document.getElementById('partyBalance');
+                    openingBalanceElement.innerHTML = 'Balance Amount: <span class="amount">' + data.balance + '</span>';
+    
+                    // Get the amount element within the partyBalance element
+                    var openingBalanceAmountElement = openingBalanceElement.querySelector('.amount');
+    
+                    var paymentStatus = data.payment;
+    
+                    if (paymentStatus === 'To Pay') {
+                        openingBalanceAmountElement.style.color = 'red';
+                    } else if (paymentStatus === 'To Receive') {
+                        openingBalanceAmountElement.style.color = 'green';
+                    } else {
+                        openingBalanceAmountElement.style.color = 'black';
+                    }
+                }
+            });
+        }
+    </script>
+    
+
+
+    <script>
+        $(document).ready(function() {
+            $('#partyforms').submit(function(event) {
+                event.preventDefault(); // Prevent the default form submission
         
+                var formData = $(this).serialize(); // Serialize the form data
+        
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: $(this).attr('method'),
+                    data: formData,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status) {
+                            $('#customercreation').modal('hide');
+                            updatePartyDropdown(); // Call updatePartyDropdown after successful form submission
+                        } else {
+                            alert(response.message); // Show the error message returned from the server
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                        alert("An error occurred. Please try again later."); // Show a generic error message for unexpected errors
+                    }
+                });
+            });
+        });
+        
+        
+        function updatePartyDropdown() {
+            $.ajax({
+                url: "{% url 'get_party_list' %}",
+                type: "GET",
+                dataType: "json",
+                data: $(this).serialize(),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                success: function(data) {
+                    var $select = $('#partySelect').selectize();
+                    var selectize = $select[0].selectize;
+                    selectize.clearOptions(); // Clear existing options
+                    $.each(data, function(key, value) {
+                        selectize.addOption({ value: value[0], text: value[1] });
+                        selectize.addItem(value[0]);
+                    });
+                    selectize.refreshOptions();
+                    // After updating the dropdown, call updatePartyDetails for the newly added party
+                    getprty();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching party list:", error); // Log any errors
+                }
+            });
+        }
+        
+        
+        </script>
+
+
 
 
 <script>
@@ -974,37 +1042,10 @@
 
 </body>
 
-<script>
-    $(document).ready(function () {
-        // Initialize selectize
-        var $select = $('#partySelect').selectize({
-            sortField: 'value',
-            items: [''],
-            render: {
-                item: function (item, escape) {
-                    if (item.value === '') {
-                        return '';
-                    }
-                    return '<div>' + escape(item.text) + '</div>';
-                }
-            }
-        });
-    
-        // Get selectize instance
-        var selectize = $select[0].selectize;
-    
-        // Add change event listener
-        selectize.on('change', function () {
-            updatePartyDetails();
-        });
-    
-        // Call updatePartyDetails() initially
-        updatePartyDetails();
-    });
 
 
-    
-</script>
+        
+
 
 
 

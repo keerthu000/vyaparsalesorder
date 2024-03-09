@@ -215,7 +215,7 @@
                                 <tr>
                                     <th class="text-right">#</th>
                                     <th>Item</th>
-                                    <th class="text-right">Hsn</th>
+                                    <th class="text-right">HSN</th>
                                     <th class="text-right">Qty</th>
                                     <th class="text-right">Price</th>
                                     <th class="text-right">Tax</th>
@@ -436,7 +436,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="background-color: rgba(144, 211, 117, 0.098);">
-                <form method="POST" action="{% url 'salesinvoice_save_parties' %}" class="p-5" enctype="multipart/form-data" novalidate id="forms">
+                <form method="POST" action="{% url 'salesinvoice_save_parties' %}" class="p-5" enctype="multipart/form-data" novalidate id="partyforms">
                     {% csrf_token %}
                     <div class="bg-light bs p-4 rounded mb-5">
                         <div id="main_form_div">
@@ -623,7 +623,42 @@
 </div>
 <!-- modal end -->
 
-
+<script>
+    $(document).ready(function() {
+        $('#partyforms').submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            var formData = $(this).serialize(); // Serialize form data
+            
+            $.ajax({
+                url: "{% url 'salesinvoice_save_parties' %}", // Replace with your actual endpoint URL
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.status) {
+                        // Handle success, maybe show a success message
+                        alert('Party added successfully!');
+                        updatePartyDropdown();
+                        
+                        // Hide the modal
+                        $('#customercreation').modal('hide');
+                        
+                        // Optionally, you can redirect the user or perform other actions
+                    } else {
+                        // Handle failure, show error message
+                        $('#error-message').text('Failed to add party: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error('Error:', error);
+                    alert('Check GST number or Contact number of Party is already registered.');
+                }
+            });
+        });
+        
+    });
+</script>
 <!-- modal -->
 <div class="modal fade" id="newitem">
     <div class="modal-dialog modal-xl">
@@ -891,11 +926,11 @@
 
         // Add change event listener
         selectize.on('change', function () {
-            updatePartyDetails();
+            getprty();
         });
 
         // Call updatePartyDetails() initially
-        updatePartyDetails();
+        getprty();
     });
 
     // Function to update party details
@@ -918,38 +953,32 @@ $(document).ready(function () {
 
         // Attach an event listener to handle changes in the Select2 dropdown
         $('#partySelect').on('select2:select', function (e) {
-            updatePartyDetails(e.params.data.id);
+            getprty(e.params.data.id);
         });
     });
 
     // Call updatePartyDetails when the document is ready
 document.addEventListener("DOMContentLoaded", function() {
-    updatePartyDetails();
+    getprty();
 });
 
-function updatePartyDetails() {
-    // Get the selected party name
-    var selectedParty = document.getElementById('partySelect').value;
-
-    // Assume you have an endpoint to fetch party details, replace 'your-api-endpoint' with the actual endpoint
-    var endpoint = '/api/party-details/' + selectedParty; // Update the endpoint accordingly
-
-    // Fetch party details
-    fetch(endpoint)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
+function getprty() {
+    var party = $('#partySelect').val();
+    console.log(party)
+    $.ajax({
+        type: "GET",
+        url: "{% url 'getparty_salesinvoice' %}",
+        data: {
+            id: party
+        },
+        success: function(data) {
             // Update the input fields with the fetched details
-            document.getElementById('partyPhone').value = data.contact;
+            document.getElementById('partyPhone').value = data.phone;
             document.getElementById('partyAddress').value = data.address;
 
             // Update the opening balance with color based on payment status
             var openingBalanceElement = document.getElementById('partyBalance');
-            openingBalanceElement.innerHTML = 'Balance Amount: <span class="amount">' + data.openingbalance + '</span>';
+            openingBalanceElement.innerHTML = 'Balance Amount: <span class="amount">' + data.balance + '</span>';
 
             // Get the amount element within the partyBalance element
             var openingBalanceAmountElement = openingBalanceElement.querySelector('.amount');
@@ -963,10 +992,41 @@ function updatePartyDetails() {
             } else {
                 openingBalanceAmountElement.style.color = 'black';
             }
-        })
-        .catch(error => console.error('Error fetching party details:', error));
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching party details:", error); // Log any errors
+        }
+    });
 }
     
+function updatePartyDropdown() {
+    $.ajax({
+        url: "{% url 'get_party_list' %}",
+        type: "GET",
+        dataType: "json",
+        data: {},
+        success: function(data) {
+            var $select = $('#partySelect').selectize();
+            var selectize = $select[0].selectize;
+            selectize.clearOptions(); // Clear existing options
+            $.each(data, function(key, value) {
+                selectize.addOption({ value: value[0], text: value[1] });
+                selectize.addItem(value[0]);
+            });
+
+            // After updating the dropdown, reinitialize the selectize dropdown
+            selectize.refreshOptions();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching party list:", error); // Log any errors
+        },
+        complete: function() {
+            // After the dropdown is updated, call getprty for the newly added party
+            getprty();
+        }
+    });
+}
+
 
 
 </script>

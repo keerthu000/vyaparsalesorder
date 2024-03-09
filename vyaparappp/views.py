@@ -2812,22 +2812,20 @@ def createNewEstimate(request):
 
 
 def getPartyList(request):
-  if 'staff_id' in request.session:
-    if request.session.has_key('staff_id'):
-      staff_id = request.session['staff_id']
-            
+    if 'staff_id' in request.session:
+        staff_id = request.session['staff_id']
+        staff = staff_details.objects.get(id=staff_id)
+        com = company.objects.get(id=staff.company.id)
+
+        options = {}
+        option_objects = party.objects.filter(company=com)
+        for option in option_objects:
+            options[option.id] = [option.id, option.party_name]
+
+        print("getPartyList view called")  # Check if the view is being called
+        return JsonResponse(options)
     else:
-      return redirect('/')
-    staff =  staff_details.objects.get(id=staff_id)
-    com =  company.objects.get(id = staff.company.id)
-
-    options = {}
-    option_objects = party.objects.filter(company = com)
-    for option in option_objects:
-        options[option.id] = [option.id , option.party_name]
-
-    return JsonResponse(options)
-
+        return JsonResponse({'error': 'Invalid session. Please log in again.'})
 
 def getItemList(request):
   if 'staff_id' in request.session:
@@ -4310,56 +4308,52 @@ def viewChallan(request, id):
       return redirect(delivery_challan)
     
 
-
-
-    
-from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt
-
 def addNewParty(request):
-    if 'staff_id' in request.session:
-        staff_id = request.session['staff_id']
-        staff = staff_details.objects.get(id=staff_id)
-        if request.method == 'POST':
-            Company = company.objects.get(id=staff.company.id)
-            user_id = request.user.id
-            
-            party_name = request.POST['partyname']
-            gst_no = request.POST['gstno']
-            contact = request.POST['contact']
-            gst_type = request.POST['gst']
-            state = request.POST['state']
-            address = request.POST['address']
-            email = request.POST['email']
-            openingbalance = request.POST.get('balance', '')
-            payment = request.POST.get('paymentType', '')
-            creditlimit = request.POST.get('creditlimit', '')
-            current_date = request.POST['currentdate']
-            End_date = request.POST.get('enddate', None)
-            additionalfield1 = request.POST['additionalfield1']
-            additionalfield2 = request.POST['additionalfield2']
-            additionalfield3 = request.POST['additionalfield3']
-            comp = Company
+    if request.method == 'POST':
+        if 'staff_id' in request.session:
+            staff_id = request.session['staff_id']
+        else:
+            return JsonResponse({'status': False, 'message': 'Invalid session. Please log in again.'}, status=400)
 
-            if party.objects.filter(gst_no=gst_no, company=comp).exists():
-              response = {'status': False, 'message': 'GST  number already exists.'}
-            # If GST number is already registered, do not save and return
-              return JsonResponse(response)
-            if party.objects.filter(contact=contact, company=comp).exists():
-              response = {'status': False, 'message': 'Contact number already exists.'}
-              return JsonResponse(response)
+        try:
+            staff = staff_details.objects.get(id=staff_id)
+        except staff_details.DoesNotExist:
+            return JsonResponse({'status': False, 'message': 'Staff details not found.'}, status=400)
 
-            part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state,
-                         address=address, email=email, openingbalance=openingbalance, payment=payment,
-                         creditlimit=creditlimit, current_date=current_date, End_date=End_date,
-                         additionalfield1=additionalfield1, additionalfield2=additionalfield2,
-                         additionalfield3=additionalfield3, company=comp)
-            part.save()
+        company_instance = staff.company 
 
-            return JsonResponse({'status': True, 'message': 'Party added successfully'})
+        party_name = request.POST.get('partyname', '')
+        gst_no = request.POST.get('gstin', '')
+        contact = request.POST.get('partyphno', '')
+        gst_type = request.POST.get('modalgsttype', '')
+        state = request.POST.get('splystate', '')
+        address = request.POST.get('baddress', '')
+        email = request.POST.get('partyemail', '')
+        openingbalance = request.POST.get('openbalance', '')
+        payment = request.POST.get('paymentType', '')
+        creditlimit = request.POST.get('crd_lmt', '')
+        current_date = request.POST.get('partydate', '')
+        additionalfield1 = request.POST.get('additional1', '')
+        additionalfield2 = request.POST.get('additional2', '')
+        additionalfield3 = request.POST.get('additional3', '')
+        comp = company_instance
+
+        # Check if the GST number or contact number is already registered
+        if party.objects.filter(Q(gst_no=gst_no) | Q(contact=contact), company=company_instance).exists():
+            return JsonResponse({'status': False, 'message': 'GST number or Contact number of Party is already registered.'}, status=400)
+
+        # Create and save the new party instance
+        part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address, email=email,
+                     openingbalance=openingbalance, payment=payment, creditlimit=creditlimit, current_date=current_date,
+                     additionalfield1=additionalfield1, additionalfield2=additionalfield2, additionalfield3=additionalfield3, company=comp)
+        part.save() 
+
+        return JsonResponse({'status': True})
     else:
-        return JsonResponse({'status': False, 'message': 'Invalid session. Please log in again.'})
+        return JsonResponse({'status': False, 'message': 'Invalid request method.'}, status=400)
+
+
+
 
 
 
@@ -5018,6 +5012,110 @@ def itemdata_salesinvoiceedit(request):
   return JsonResponse({'hsn':hsn, 'gst':gst, 'igst':igst, 'price':price, 'qty':qty})
 
 
+# def save_sales_invoice(request):
+
+#     if request.method == 'POST':
+        
+#         if 'staff_id' in request.session:
+#             staff_id = request.session['staff_id']
+#         else:
+#             return redirect('/')
+
+#         staff = staff_details.objects.get(id=staff_id)
+#         company_instance = staff.company 
+        
+#         partyname = request.POST.get('partyname')
+#         print("Party name submitted:", partyname)
+#         party_name = party_name.strip()
+#         contact = request.POST.get('contact')
+#         address = request.POST.get('address')
+#         invoice_no = request.POST.get('invoiceno')
+#         date = request.POST.get('date')
+#         state_of_supply = request.POST.get('state_of_supply')
+#         paymenttype = request.POST.get('bank')
+#         cheque = request.POST.get('chequeNumber')
+#         upi = request.POST.get('upiNumber')
+#         accountno = request.POST.get('accountNumber')
+#         product = tuple(request.POST.getlist("product[]"))
+#         hsn =  tuple(request.POST.getlist("hsn[]"))
+#         qty =  tuple(request.POST.getlist("qty[]"))
+#         rate =  tuple(request.POST.getlist("price[]"))
+#         discount =  tuple(request.POST.getlist("discount[]"))
+#         tax =  tuple(request.POST.getlist("tax[]"))
+#         total =  tuple(request.POST.getlist("total[]"))
+#         description = request.POST.get('description')
+#         advance = request.POST.get("advance")
+#         balance = request.POST.get("balance")
+#         subtotal = float(request.POST.get('subtotal'))
+#         igst = request.POST.get('igst')
+#         cgst = request.POST.get('cgst')
+#         sgst = request.POST.get('sgst')
+#         adjust = request.POST.get("adj")
+#         taxamount = request.POST.get("taxamount")
+#         grandtotal=request.POST.get('grandtotal')
+
+#         party_instance = party.objects.get(party_name=partyname)
+        
+      
+#         sales_invoice = SalesInvoice(
+#             staff=staff,
+#             company=company_instance,
+#             part=party_instance,
+#             party_name=party_name,
+#             contact=contact,
+#             address=address,
+#             invoice_no=invoice_no,
+#             date=date,
+#             state_of_supply=state_of_supply,
+#             paymenttype=paymenttype,
+#             cheque=cheque,
+#             upi=upi,
+#             accountno=accountno,
+#             description=description,
+#             subtotal=subtotal,
+#             igst=igst,
+#             cgst=cgst,
+#             sgst=sgst,
+#             total_taxamount=taxamount,
+#             adjustment=adjust,
+#             grandtotal=grandtotal,
+#             paidoff=advance,
+#             totalbalance=balance,
+#         )
+    
+#         sales_invoice.save()
+
+#         tr_history = SalesInvoiceTransactionHistory(company=company_instance,
+#                                               staff=staff,      
+#                                               salesinvoice=sales_invoice,
+#                                               action="CREATED",
+#                                               done_by_name=staff.first_name,
+#                                               )
+#         tr_history.save()
+
+#         invoice = SalesInvoice.objects.get(id=sales_invoice.id)
+#         mapped = []  # Initialize mapped
+#         if len(product)==len(hsn)==len(qty)==len(rate)==len(discount)==len(tax)==len(total):
+#           mapped=zip(product, hsn, qty, rate, discount, tax, total)
+#           mapped=list(mapped)
+#         for ele in mapped: 
+#           itm = ItemModel.objects.get(id=ele[0])
+#           SalesInvoiceItem.objects.create(item=itm, hsn=ele[1], quantity=ele[2], rate=ele[3], discount=ele[4], tax=ele[5], totalamount=ele[6], salesinvoice=invoice, company=company_instance)
+
+
+        
+
+#         action = request.POST.get('action', '')
+      
+#         if action == 'save_and_new':
+#           return redirect('add_salesinvoice')
+            
+#         elif action == 'save':
+#           return redirect('view_salesinvoice')
+            
+#     return render(request, 'company/add_salesinvoice.html')
+
+
 def save_sales_invoice(request):
 
     if request.method == 'POST':
@@ -5029,8 +5127,9 @@ def save_sales_invoice(request):
 
         staff = staff_details.objects.get(id=staff_id)
         company_instance = staff.company 
-        
         party_name = request.POST.get('partyname')
+        party_instance=party.objects.get(party_name=party_name)
+        
         contact = request.POST.get('contact')
         address = request.POST.get('address')
         invoice_no = request.POST.get('invoiceno')
@@ -5058,7 +5157,7 @@ def save_sales_invoice(request):
         taxamount = request.POST.get("taxamount")
         grandtotal=request.POST.get('grandtotal')
 
-        party_instance=party.objects.get(party_name=party_name)
+        
         
       
         sales_invoice = SalesInvoice(
@@ -5118,7 +5217,6 @@ def save_sales_invoice(request):
           return redirect('view_salesinvoice')
             
     return render(request, 'company/add_salesinvoice.html')
-
 
 def view_salesinvoice(request):
     if 'staff_id' in request.session:
@@ -5260,6 +5358,8 @@ def editsave_salesinvoice(request,id):
     return render(request, 'company/edit_salesinvoice.html')
 
 
+from django.db.models import Q
+
 def salesinvoice_save_parties(request):
     if request.method == 'POST':
         if 'staff_id' in request.session:
@@ -5291,7 +5391,7 @@ def salesinvoice_save_parties(request):
         comp = company_instance
 
         # Check if the GST number or contact number is already registered
-        if party.objects.filter(Q(gst_no=gst_no) | Q(contact=contact), company=company_instance).exists():
+        if party.objects.filter(Q(gst_no=gst_no, company=company_instance) | Q(contact=contact, company=company_instance)).exists():
             return JsonResponse({'status': False, 'message': 'GST number or Contact number of Party is already registered.'}, status=400)
 
         part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address, email=email,
@@ -5299,22 +5399,31 @@ def salesinvoice_save_parties(request):
                      additionalfield1=additionalfield1, additionalfield2=additionalfield2, additionalfield3=additionalfield3, company=comp)
         part.save() 
 
-        return JsonResponse({'status': True})
+        return JsonResponse({'status': True})  
     else:
-        return JsonResponse({'status': False, 'message': 'Invalid request method.'}, status=400)
+        return JsonResponse({'status': False, 'message': 'Invalid request method.'}, status=400)  # Return error message for invalid request method
+
 
 
 
 
 def get_party_list(request):
-    if request.method == 'GET':
-        # Assuming the user is authenticated and has staff details associated
-        company_instance = request.user.staff.company
-        parties = party.objects.filter(company=company_instance).values_list('party_name', flat=True)
-        party_list = list(parties)
-        return JsonResponse({'parties': party_list})
-    else:
-        return JsonResponse({'status': False, 'message': 'Invalid request method.'}, status=400)
+     
+  if 'staff_id' in request.session:
+    staff_id = request.session['staff_id']
+    staff = staff_details.objects.get(id=staff_id)
+    com = company.objects.get(id=staff.company.id)
+
+    options = {}
+    option_objects = party.objects.filter(company=com)
+    for option in option_objects:
+      options[option.id] = [option.id, option.party_name]
+
+      print("getPartyList view called")  # Check if the view is being called
+      return JsonResponse(options)
+       
+  else:
+      return JsonResponse({'error': 'Invalid session. Please log in again.'})
 
 
 
@@ -12721,6 +12830,57 @@ def importsalesorderFromExcel(request):
                 messages.warning(request,
                                  f'Data with following SlNo could not import due to incorrect data provided - {", ".join(str(item) for item in incorrect_data)}')
             return redirect(sale_order)
+        
+def get_Party_Details(request):
+  if 'staff_id' in request.session:
+    if request.session.has_key('staff_id'):
+      staff_id = request.session['staff_id']
+            
+    else:
+      return redirect('/')
+    staff =  staff_details.objects.get(id=staff_id)
+    com =  company.objects.get(id = staff.company.id)  
+    party_id = request.POST.get('id')
+    party_details = party.objects.get(id = party_id)
+
+    list = []
+    dict = {
+      'contact': party_details.contact,
+      'address':party_details.address,
+      'state': party_details.state,
+      'balance':party_details.openingbalance,
+      'payment':party_details.payment,
+    }
+    list.append(dict)
+    return JsonResponse(json.dumps(list), content_type="application/json", safe=False)
+
+def get_party_list_dropdown(request):
+     
+  if 'staff_id' in request.session:
+    staff_id = request.session['staff_id']
+    staff = staff_details.objects.get(id=staff_id)
+    com = company.objects.get(id=staff.company.id)
+
+    options = {}
+    option_objects = party.objects.filter(company=com)
+    for option in option_objects:
+      options[option.id] = [option.id, option.party_name]
+
+      print("getPartyList view called")  # Check if the view is being called
+      return JsonResponse(options)
+       
+  else:
+      return JsonResponse({'error': 'Invalid session. Please log in again.'})
 
 
-   
+def getparty_salesinvoice(request):
+    
+    print("=======================")
+    p_id = request.GET.get('id')
+    print(p_id)
+    par = party.objects.get(id=p_id)
+    print(par.party_name)
+    data7 = {'phone': par.contact,'balance':par.openingbalance,'payment':par.payment,'address':par.address}
+    
+    print(data7)
+    return JsonResponse(data7)
