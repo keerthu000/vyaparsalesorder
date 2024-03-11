@@ -110,18 +110,22 @@
 
                 <input class="hidden" type="text" name="samp" id="samp" >
                 <input class="hidden"  id="cus_place" name="hidden_cus_place"  value=""> -->
-
-
+                    
+                    <p>{{ p.id }}</p>
                 <div class="row">
                     <div class="col-md-4">
                     <label class="col-form-label">Party</label>
                     <div class="d-flex ">
-                        <select style="color: black;  width: 21.5vw;" class="form-control  me-2 border-secondary"  id="partySelect" name="partyname"  required >
-                            <option value="{{getinoice.party.party_name}}" selected hidden>{{getinoice.party.party_name}}</option>
-                        {% for i in Party %}
-                            <option value="{{ i.party_name|upper }}">{{ i.party_name|upper }}</option>
-                        {% endfor %}
+                        <select style="color: black; width: 21.5vw;" class="form-control me-2 border-secondary" id="partySelect" name="partyname" required>
+                            {% for p in Party %}
+                                {% if getinoice.party.id == p.id %}
+                                    <option value="{{ p.id }}" selected>{{ p.party_name|upper }}</option>
+                                {% else %}
+                                    <option value="{{ p.id }}">{{ p.party_name|upper }}</option>
+                                {% endif %}
+                            {% endfor %}
                         </select>
+                        
                         <button id="modal_closing" type="button" class="btn " style="background-color: lightskyblue;" data-bs-toggle="modal" data-bs-target="#customercreation" data-bs-whatever="@mdo"><span class="fa fa-plus " style="color: #fff;" ></span></button>
     
                       </div>
@@ -624,40 +628,35 @@
 <!-- modal end -->
 
 <script>
-    $(document).ready(function() {
+    $ $(document).ready(function() {
         $('#partyforms').submit(function(event) {
-            event.preventDefault(); // Prevent default form submission
-            
-            var formData = $(this).serialize(); // Serialize form data
-            
+            event.preventDefault(); // Prevent the default form submission
+    
+            var formData = $(this).serialize(); // Serialize the form data
+    
             $.ajax({
-                url: "{% url 'salesinvoice_save_parties' %}", // Replace with your actual endpoint URL
-                type: 'POST',
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
                 data: formData,
+                dataType: 'json',
                 success: function(response) {
-                    if (response.status) {
-                        // Handle success, maybe show a success message
-                        alert('Party added successfully!');
-                        updatePartyDropdown();
-                        
-                        // Hide the modal
-                        $('#customercreation').modal('hide');
-                        
-                        // Optionally, you can redirect the user or perform other actions
+                    $('#customercreation').modal('hide');
+                    updatePartyDropdown(); // Call updatePartyDropdown after successful form submission
+                    if (response.status === false) {
+                        $("#error_message").text(response.message);
+                        alert(response.message);
                     } else {
-                        // Handle failure, show error message
-                        $('#error-message').text('Failed to add party: ' + response.message);
+                        alert("Party added successfully.");
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Handle error
-                    console.error('Error:', error);
-                    alert('Check GST number or Contact number of Party is already registered.');
+                    console.error(xhr.responseText);
+                    alert("An error occurred. Please try again later."); // Show a generic error message for unexpected errors
                 }
             });
         });
-        
     });
+    
 </script>
 <!-- modal -->
 <div class="modal fade" id="newitem">
@@ -907,10 +906,11 @@
 
 <script>
     $(document).ready(function () {
+     
         // Initialize selectize
         var $select = $('#partySelect').selectize({
             sortField: 'value',
-            items: ['{{getinoice.party.party_name}}'], 
+            items: ['{{getinoice.Party.party_name}}'], 
             render: {
                 item: function (item, escape) {
                     if (item.value === '') {
@@ -927,77 +927,33 @@
         // Add change event listener
         selectize.on('change', function () {
             getprty();
+            //updatePartyDetails()
         });
 
         // Call updatePartyDetails() initially
         getprty();
+        //updatePartyDetails()
     });
 
     // Function to update party details
-    function updatePartyDetails() {
-        // Add your logic to update party details based on the selected value
-        console.log("Selected party:", $('#partySelect').val());
-    }
+   
 </script>
 
-
+<script>
+    $('#partySelect').change(function() {
+        getprty();
+        //updatePartyDetails()
+    });
+</script>
 
 <script>
-
-$(document).ready(function () {
-        $('#partySelect').select2({
-            width: '100%', // Set the width to 100% to match the original width
-            placeholder: 'Type to search...', // Add a placeholder
-            
-        });
-
-        // Attach an event listener to handle changes in the Select2 dropdown
-        $('#partySelect').on('select2:select', function (e) {
-            getprty(e.params.data.id);
-        });
-    });
-
     // Call updatePartyDetails when the document is ready
 document.addEventListener("DOMContentLoaded", function() {
     getprty();
+    //updatePartyDetails();
 });
 
-function getprty() {
-    var party = $('#partySelect').val();
-    console.log(party)
-    $.ajax({
-        type: "GET",
-        url: "{% url 'getparty_salesinvoice' %}",
-        data: {
-            id: party
-        },
-        success: function(data) {
-            // Update the input fields with the fetched details
-            document.getElementById('partyPhone').value = data.phone;
-            document.getElementById('partyAddress').value = data.address;
 
-            // Update the opening balance with color based on payment status
-            var openingBalanceElement = document.getElementById('partyBalance');
-            openingBalanceElement.innerHTML = 'Balance Amount: <span class="amount">' + data.balance + '</span>';
-
-            // Get the amount element within the partyBalance element
-            var openingBalanceAmountElement = openingBalanceElement.querySelector('.amount');
-
-            var paymentStatus = data.payment;
-
-            if (paymentStatus === 'To Pay') {
-                openingBalanceAmountElement.style.color = 'red';
-            } else if (paymentStatus === 'To Receive') {
-                openingBalanceAmountElement.style.color = 'green';
-            } else {
-                openingBalanceAmountElement.style.color = 'black';
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error fetching party details:", error); // Log any errors
-        }
-    });
-}
     
 function updatePartyDropdown() {
     $.ajax({
@@ -1013,17 +969,15 @@ function updatePartyDropdown() {
                 selectize.addOption({ value: value[0], text: value[1] });
                 selectize.addItem(value[0]);
             });
-
-            // After updating the dropdown, reinitialize the selectize dropdown
             selectize.refreshOptions();
+            // After updating the dropdown, reinitialize the selectize dropdown
+            
+            getprty();
         },
         error: function(xhr, status, error) {
             console.error("Error fetching party list:", error); // Log any errors
         },
-        complete: function() {
-            // After the dropdown is updated, call getprty for the newly added party
-            getprty();
-        }
+      
     });
 }
 
@@ -1031,6 +985,43 @@ function updatePartyDropdown() {
 
 </script>
 
+    <script>
+    
+        function getprty() {
+            var party = $('#partySelect').val();
+            console.log(party)
+            $.ajax({
+                type: "GET",
+                url: "{% url 'getparty_salesinvoice' %}",
+                data: {
+                    id: party
+                },
+                success: function (data) {
+                    console.log(data.phone); // Corrected: Access data.phone instead of response.phone
+                    // Update the input fields with the fetched details
+                    document.getElementById('partyPhone').value = data.phone;
+                    document.getElementById('partyAddress').value = data.address;
+    
+                    // Update the opening balance with color based on payment status
+                    var openingBalanceElement = document.getElementById('partyBalance');
+                    openingBalanceElement.innerHTML = 'Balance Amount: <span class="amount">' + data.balance + '</span>';
+    
+                    // Get the amount element within the partyBalance element
+                    var openingBalanceAmountElement = openingBalanceElement.querySelector('.amount');
+    
+                    var paymentStatus = data.payment;
+    
+                    if (paymentStatus === 'To Pay') {
+                        openingBalanceAmountElement.style.color = 'red';
+                    } else if (paymentStatus === 'To Receive') {
+                        openingBalanceAmountElement.style.color = 'green';
+                    } else {
+                        openingBalanceAmountElement.style.color = 'black';
+                    }
+                }
+            });
+        }
+    </script> 
 
 
 <script>
@@ -1056,7 +1047,7 @@ function updatePartyDropdown() {
         $('#bank').change();
     });
 
-    function updatePartyDetails() {
+      {% comment %} function updatePartyDetails() {
         // Get the selected party name
         var selectedParty = document.getElementById('partySelect').value;
     
@@ -1108,7 +1099,8 @@ function updatePartyDropdown() {
                 }
             })
             .catch(error => console.error('Error fetching party details:', error));
-    }
+           
+    } {% endcomment %}
     
      // current date
 

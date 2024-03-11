@@ -494,12 +494,12 @@
                         <label class="col-form-label">State of Supply</label>
                         <select name="state_supply" id="state_of_supply" class="form-control  bg-light  border-secondary" required>
                             <!-- <option value="">Select</option> -->
-                            {% if challan.state_of_supply == 'State' %}
+                            {% if challan.state_of_supply == 'state' %}
                             <option value="state" selected>State</option>
                             {%else%}
                             <option value="state">State</option>
                             {% endif %}
-                            {% if challan.state_of_supply == "Other State" %}
+                            {% if challan.state_of_supply == "Other" %}
                             <option value="other" selected>Other State</option>
                             {% else %}
                             <option value="other">Other State</option>
@@ -569,6 +569,7 @@
               
                           </div>
                     </div>
+                    
                     <div class="row mt-3 px-2">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -587,7 +588,7 @@
                                         <input type="number" placeholder="0.00" value="{{challan.subtotal}}" class="form-control border-secondary bg-light" name="subtotal" id="sub_total" readonly>
                                     </div>
                                 </div>
-                                
+                                {% if challan.state_of_supply  == 'state' %}
                                 <div class="cgst align-items-center amount_summary" id="cgst_val">
                                     <div class="amt_head_label">
                                         <label>CGST</label>
@@ -612,7 +613,33 @@
                                         <input type="number" placeholder="0.00" value="{{challan.igst}}" class="form-control border-secondary bg-light" name="igst_tax" id="igst_tax" readonly>
                                     </div>
                                 </div>
-
+                                {%endif%}
+                                {% if challan.state_of_supply  == 'other' %}
+                                <div class="cgst align-items-center amount_summary" id="cgst_val">
+                                    <div class="amt_head_label">
+                                        <label>CGST</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.cgst}}" class="form-control border-secondary bg-light" name="cgst_tax" id="cgst_tax" readonly>
+                                    </div>
+                                </div>
+                                <div class="sgst align-items-center amount_summary" id="sgst_val">
+                                    <div class="amt_head_label">
+                                        <label>SGST</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.sgst}}" class="form-control border-secondary bg-light" name="sgst_tax" id="sgst_tax" readonly>
+                                    </div>
+                                </div>
+                                <div class="igst align-items-center amount_summary" id="igst_val">
+                                    <div class="amt_head_label">
+                                        <label>IGST</label>
+                                    </div>
+                                    <div class="val">
+                                        <input type="number" placeholder="0.00" value="{{challan.igst}}" class="form-control border-secondary bg-light" name="igst_tax" id="igst_tax" readonly>
+                                    </div>
+                                </div>
+                                {%endif%}
                                 <div class="tax_total align-items-center amount_summary">
                                     <div class="amt_head_label">
                                         <label>Tax Amount</label>

@@ -5128,7 +5128,8 @@ def save_sales_invoice(request):
         staff = staff_details.objects.get(id=staff_id)
         company_instance = staff.company 
         party_name = request.POST.get('partyname')
-        party_instance=party.objects.get(party_name=party_name)
+        
+       
         
         contact = request.POST.get('contact')
         address = request.POST.get('address')
@@ -5156,15 +5157,17 @@ def save_sales_invoice(request):
         adjust = request.POST.get("adj")
         taxamount = request.POST.get("taxamount")
         grandtotal=request.POST.get('grandtotal')
-
+        party_instance=party.objects.get(id=party_name)
+       
         
         
       
         sales_invoice = SalesInvoice(
             staff=staff,
             company=company_instance,
-            party=party_instance,
+            
             party_name=party_name,
+            party=party_instance,
             contact=contact,
             address=address,
             invoice_no=invoice_no,
@@ -5308,7 +5311,10 @@ def editsave_salesinvoice(request,id):
         company_instance = company.objects.get(id=staff.company.id)
         sales_invoice=SalesInvoice.objects.get(id=id,company=company_instance,staff=staff)
         
-        sales_invoice.party_name = request.POST.get('partyname')
+        prtyid = request.POST.get('partyname')
+        prty=party.objects.get(id=prtyid)
+        sales_invoice.party=prty
+        sales_invoice.party_name=prty
         sales_invoice.contact = request.POST.get('contact')
         sales_invoice.address = request.POST.get('address')
         sales_invoice.invoice_no = request.POST.get('invoiceno')
@@ -5392,7 +5398,8 @@ def salesinvoice_save_parties(request):
 
         # Check if the GST number or contact number is already registered
         if party.objects.filter(Q(gst_no=gst_no, company=company_instance) | Q(contact=contact, company=company_instance)).exists():
-            return JsonResponse({'status': False, 'message': 'GST number or Contact number of Party is already registered.'}, status=400)
+          return JsonResponse({'status': False, 'message': 'GST number or Contact number of Party is already registered.'}, status=200)  # Return status 200 for success but with status=False
+
 
         part = party(party_name=party_name, gst_no=gst_no, contact=contact, gst_type=gst_type, state=state, address=address, email=email,
                      openingbalance=openingbalance, payment=payment, creditlimit=creditlimit, current_date=current_date,
@@ -7538,7 +7545,7 @@ def edit_saleorder(request,id):
   if request.method == 'POST':
     so = salesorder.objects.get(id=id)
     
-    prtyid=request.POST.get('party')
+    prtyid=request.POST.get('partyname')
     prty=party.objects.get(id=prtyid)
     so.party=prty
     so.partyname = prty.party_name
@@ -12884,3 +12891,32 @@ def getparty_salesinvoice(request):
     
     print(data7)
     return JsonResponse(data7)
+
+
+def downloadsalesorderSampleImportFile(request):
+    
+    challan_table_data = [['SLNO','DATE','NAME','STATE OF SUPPLY','DESCRIPTION','SUB TOTAL','IGST','CGST','SGST','TAX AMOUNT','ADJUSTMENT','GRAND TOTAL'], ['1', '2023-11-20', '2023-11-20', 'Alwin', 'State', 'Sample Description','1000','0','25','25','50','0','1050']]
+    items_table_data = [['SALE ORDER NO', 'NAME','HSN','QUANTITY','PRICE','TAX PERCENTAGE','DISCOUNT','TOTAL'], ['1', 'Test Item 1','788987','1','1000','5','0','1000']]
+
+    wb = Workbook()
+
+    sheet1 = wb.active
+    sheet1.title = 'salesorder'
+    sheet2 = wb.create_sheet(title='items')
+
+    # Populate the sheets with data
+    for row in challan_table_data:
+        sheet1.append(row)
+
+    for row in items_table_data:
+        sheet2.append(row)
+
+    # Create a response with the Excel file
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=salesorder_sample_file.xlsx'
+
+    # Save the workbook to the response
+    wb.save(response)
+
+    return response
+

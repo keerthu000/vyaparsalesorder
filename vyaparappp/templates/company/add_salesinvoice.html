@@ -109,6 +109,7 @@
             <div class="container-fluid" style="margin-left: -4vw; margin-top: -4vw;">
                 <div class="col-md-3">
                     <a class="text-dark" style="font-size: 1.5rem;">Add Sales Invoice</a>
+                    <div id="error_message" style="color:red;"></div>
                 </div>
                 
                 <!-- <input class="hidden"  id="state1" name="hidden_state1" value="">
@@ -118,13 +119,7 @@
                 <input class="hidden"  id="cus_place" name="hidden_cus_place"  value=""> -->
 
 
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="color:red;">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endfor %}
-
+              
                 <div class="row">
                     <div class="col-md-4">
                         <label class="col-form-label">Party</label>
@@ -139,6 +134,7 @@
                                 <span class="fa fa-plus" style="color: #fff;"></span>
                             </button>
                         </div>
+                       
                     </div>
                     <div class="col-md-4">
                         <div id="partyPhonebox">
@@ -929,11 +925,13 @@
                     data: formData,
                     dataType: 'json',
                     success: function(response) {
-                        if (response.status) {
-                            $('#customercreation').modal('hide');
-                            updatePartyDropdown(); // Call updatePartyDropdown after successful form submission
+                        $('#customercreation').modal('hide');
+                        updatePartyDropdown(); // Call updatePartyDropdown after successful form submission
+                        if (response.status === false) {
+                            $("#error_message").text(response.message);
+                            alert(response.message);
                         } else {
-                            alert(response.message); // Show the error message returned from the server
+                            alert("Party added successfully.");
                         }
                     },
                     error: function(xhr, status, error) {
@@ -943,7 +941,6 @@
                 });
             });
         });
-        
         
         function updatePartyDropdown() {
             $.ajax({
